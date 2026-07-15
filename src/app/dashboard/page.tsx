@@ -14,12 +14,23 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+import { Label } from "@/components/ui/label";
+
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 import { BarcodeCard } from "@/components/pos-uniform/scanned-barcode";
 import { useState, useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+
+import { ProductImageGallery } from "@/components/pos-uniform/product-Image-gallery";
+import products from "@/data/products.json";
+
+
 
 export default function Page() {
   const [barcode, setBarcode] = useState("");
@@ -30,6 +41,14 @@ export default function Page() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const currentCartQuantity = cart[barcode] || 0;
   const [qtyAdded, setQtyAdded] = useState(0);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const images = [
+    "/products/shirt/front.png",
+    "/products/shirt/back.png",
+    "/products/shirt/collar.png",
+    "/products/shirt/fabric.png",
+  ];
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -117,37 +136,6 @@ export default function Page() {
 
             <div className="h-55  rounded-xl bg-muted/50">
               <div>
-                {/* <div className="flex flex-col items-start gap-2">
-                  <span className="text-sm font-semibold  text-muted-foreground mt-8">
-                    Product
-                  </span>
-                  <h3 className="text-lg font-bold text-foreground mt-2">
-                    School Shirt(Full Sleeve)
-                  </h3>
-
-                  <div className="flex flex-row ">
-                 
-
-                     <div className="flex flex-col items-center mt-8">
-                      <span className="text-sm font-medium text-muted-foreground text-center">
-                        Times Scanned
-                      </span>
-                      <h2 className="text-2xl font-bold text-blue-600">
-                        {timesScanned}
-                      </h2>
-                    </div>
-
-                    <div className="flex flex-col ml-6 items-center mt-8">
-                      <span className="text-sm font-medium text-muted-foreground text-center">
-                        Current Cart Quantity
-                      </span>
-                      <h2 className="text-2xl font-bold text-blue-600">
-                        {currentCartQuantity}
-                      </h2>
-                    </div>
-                  </div>
-                </div> */}
-
                 <div className="flex h-full flex-col p-5">
                   {/* Product Info */}
                   <div>
@@ -190,42 +178,6 @@ export default function Page() {
             <div className="h-55 rounded-xl bg-muted/50">
               {" "}
               <div>
-                {/* <div className="flex flex-col items-start gap-2">
-                  <div className="flex flex-row ">
-                
-
-                    <div className="flex flex-col ml-6 items-center">
-                      <span className="text-sm font-medium text-muted-foreground text-center">
-                        Total Items In Cart
-                      </span>
-                      <h2 className="text-2xl font-bold text-blue-600">
-                        {totalItemsInCart}
-                      </h2>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col ">
-                    <div className="flex items-center gap-18">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Last Scan:
-                      </span>
-
-                      <span className="text-sm font-semibold">
-                        {scanTime || "--:--:--"}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-row  items-center">
-                      <span className="text-sm font-medium text-muted-foreground text-center">
-                        Scanner Status
-                      </span>
-                      <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 ml-6">
-                        Connected
-                      </Badge>
-                    </div>
-                  </div>
-                </div> */}
-
                 <div className="flex h-full flex-col p-5">
                   {/* Total Items */}
                   <div className="rounded-lg border bg-muted/30 p-4 text-center">
@@ -269,15 +221,188 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-12 gap-4 h-120">
-            <div className="  col-span-12 lg:col-span-8 rounded-xl bg-muted/50  ">
-              First
+            <div className="col-span-12 lg:col-span-8 rounded-xl bg-muted/50 p-6">
+              <div className="grid grid-cols-12 gap-6">
+                {/* Left Side - Product Image */}
+                <div className="col-span-12 lg:col-span-5">
+                  <ProductImageGallery
+                    productName="School Shirt (Full Sleeve)"
+                    images={images}
+                  />
+                </div>
+
+                {/* Right Side */}
+                <div className="col-span-12 lg:col-span-7 flex flex-col gap-6">
+                  {/* Product Header */}
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-3xl font-bold">
+                        School Shirt (Full Sleeve)
+                      </h2>
+
+                      <p className="mt-2 text-3xl font-bold text-primary">
+                        ₹450.00
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b pb-4">
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-100 text-green-700 hover:bg-green-100"
+                      >
+                        🛍 In Stock
+                      </Badge>
+
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Stock:
+                        <span className="ml-1 font-semibold text-foreground">
+                          120 pcs
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Product Specifications */}
+                  <div className="rounded-lg border bg-card p-5">
+                    <div className="grid grid-cols-2 gap-y-4">
+                      <span className="text-sm text-muted-foreground">SKU</span>
+                      <span className="text-sm font-semibold">UNI-20001</span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Category
+                      </span>
+                      <span className="text-sm font-semibold">Uniforms</span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Brand
+                      </span>
+                      <span className="text-sm font-semibold">SchoolHub</span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Size
+                      </span>
+                      <span className="text-sm font-semibold">
+                        S, M, L, XL, XXL
+                      </span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Color
+                      </span>
+                      <span className="text-sm font-semibold">Light Blue</span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Material
+                      </span>
+                      <span className="text-sm font-semibold">
+                        Cotton Blend
+                      </span>
+
+                      <span className="text-sm text-muted-foreground">
+                        Barcode
+                      </span>
+                      <span className="text-sm font-semibold">
+                        8901234567890
+                      </span>
+
+                      <span className="text-sm text-muted-foreground">
+                        HSN Code
+                      </span>
+                      <span className="text-sm font-semibold">62052000</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="col-span-12 lg:col-span-4 rounded-xl bg-muted/50">
-              Second
+              <div className="col-span-12 lg:col-span-3 flex flex-col gap-6">
+                {/* Quantity Card */}
+                <Card>
+                  <CardContent className="p-6 space-y-6">
+                    <div>
+                      <Label className="text-base font-semibold">
+                        Quantity
+                      </Label>
+
+                      <div className="mt-4 flex h-12 items-center justify-between rounded-lg border px-4">
+                        <Button variant="ghost" size="icon">
+                          -
+                        </Button>
+
+                        <span className="text-lg font-semibold">1</span>
+
+                        <Button variant="ghost" size="icon">
+                          +
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="h-12 w-full justify-between text-base bg-blue-600"
+                      size="lg"
+                    >
+                      <span className="flex items-center gap-2">
+                        🛒 Add to Cart
+                      </span>
+
+                      <Badge
+                        variant="secondary"
+                        className="bg-white/15 text-white"
+                      >
+                        Enter
+                      </Badge>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Information Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Information</CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="space-y-5">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Stock</span>
+
+                      <span className="font-semibold">120 pcs</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Rack / Location
+                      </span>
+
+                      <span className="font-semibold">A-03 / Shelf 2</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">GST (Tax)</span>
+
+                      <span className="font-semibold">5%</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Cart Quantity
+                      </span>
+
+                      <span className="font-semibold">2</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Last Scanned
+                      </span>
+
+                      <span className="font-semibold">10:24:35 AM</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
-          <div className="min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+          {/* <div className="min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min" /> */}
         </div>
       </SidebarInset>
     </SidebarProvider>

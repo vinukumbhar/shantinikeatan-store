@@ -1,0 +1,40 @@
+[
+  {
+    "barcode": "8901234567890",
+    "name": "School Shirt (Full Sleeve)",
+    "price": 450,
+    "stock": 120,
+    "sku": "UNI-20001",
+    "category": "Uniforms",
+    "brand": "SchoolHub",
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "color": "Light Blue",
+    "material": "Cotton Blend",
+    "hsn": "62052000",
+    "images": [
+      "/products/shirt/front.png",
+      "/products/shirt/back.png",
+      "/products/shirt/side.png",
+      "/products/shirt/detail.png"
+    ]
+  },
+  {
+    "barcode": "8901234567891",
+    "name": "School Shorts",
+    "price": 350,
+    "stock": 80,
+    "sku": "UNI-20002",
+    "category": "Uniforms",
+    "brand": "SchoolHub",
+    "sizes": ["24","26","28","30"],
+    "color": "Navy Blue",
+    "material": "Cotton",
+    "hsn": "62034200",
+    "images": [
+      "/products/shorts/front.png",
+      "/products/shorts/back.png",
+      "/products/shorts/side.png",
+      "/products/shorts/detail.png"
+    ]
+  }
+]
