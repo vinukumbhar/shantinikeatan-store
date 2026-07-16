@@ -1,4 +1,3 @@
-// hooks/useBarcodeScanner.ts
 
 "use client";
 
@@ -6,30 +5,81 @@ import { useEffect, useRef } from "react";
 
 interface ScannerOptions {
   onScan: (barcode: string) => void;
+  minLength?: number;
 }
 
-export function useBarcodeScanner({ onScan }: ScannerOptions) {
+export function useBarcodeScanner({
+  onScan,
+  minLength = 4,
+}: ScannerOptions) {
   const buffer = useRef("");
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
-        if (buffer.current.length > 3) {
-          onScan(buffer.current);
-        }
+    const resetBuffer = () => {
+      buffer.current = "";
+    };
 
-        buffer.current = "";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+
+      // Don't scan while typing in editable elements
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target.isContentEditable
+      ) {
         return;
       }
 
-      if (e.key.length === 1) {
-        buffer.current += e.key;
+      // Ignore modifier shortcuts (Ctrl+C, Ctrl+V, Ctrl+A, etc.)
+      if (e.ctrlKey || e.altKey || e.metaKey) {
+        return;
       }
+
+      // Scanner sends Enter at the end
+      if (e.key === "Enter") {
+        if (buffer.current.length >= minLength) {
+          onScan(buffer.current);
+        }
+
+        resetBuffer();
+        return;
+      }
+
+      // Allow backspace
+      if (e.key === "Backspace") {
+        buffer.current = buffer.current.slice(0, -1);
+        return;
+      }
+
+      // Ignore non-printable keys
+      if (e.key.length !== 1) {
+        return;
+      }
+
+      // Append scanned character
+      buffer.current += e.key;
+
+      // Clear buffer if scanner stops sending data
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        resetBuffer();
+      }, 100);
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
-    return () =>
+    return () => {
       window.removeEventListener("keydown", handleKeyDown);
-  }, [onScan]);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [onScan, minLength]);
 }

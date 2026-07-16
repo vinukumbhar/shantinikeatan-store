@@ -19,8 +19,6 @@ import { Button } from "@/components/ui/button";
 
 import { Label } from "@/components/ui/label";
 
-import { Minus, Plus, ShoppingCart } from "lucide-react";
-
 import { BarcodeCard } from "@/components/pos-uniform/scanned-barcode";
 import { useState, useRef } from "react";
 
@@ -28,9 +26,8 @@ import { Badge } from "@/components/ui/badge";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 import { ProductImageGallery } from "@/components/pos-uniform/product-Image-gallery";
+
 import products from "@/data/products.json";
-
-
 
 export default function Page() {
   const [barcode, setBarcode] = useState("");
@@ -41,7 +38,9 @@ export default function Page() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const currentCartQuantity = cart[barcode] || 0;
   const [qtyAdded, setQtyAdded] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<
+    (typeof products)[number] | null
+  >(null);
 
   const images = [
     "/products/shirt/front.png",
@@ -56,7 +55,50 @@ export default function Page() {
     (total, quantity) => total + quantity,
     0,
   );
+  // 1. Create a single shared handler function
+  const handleBarcodeProcess = (code: string) => {
+    setBarcode(code);
+    setScanTime(new Date().toLocaleTimeString());
 
+    // Each scan adds one item
+    setQtyAdded(1);
+
+    // Update cart quantity
+    setCart((prev) => ({
+      ...prev,
+      [code]: (prev[code] || 0) + 1,
+    }));
+
+    // Check if the same barcode was scanned
+    if (code === lastBarcodeRef.current) {
+      setTimesScanned((prev) => prev + 1);
+    } else {
+      lastBarcodeRef.current = code;
+      setTimesScanned(1);
+    }
+
+    // Show success message
+    setScanStatus("Product Scanned Successfully");
+
+    // Restart timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => {
+      setScanStatus("Waiting for Scanner");
+      setQtyAdded(0);
+    }, 1500);
+
+    console.log("Processed Barcode:", code);
+  };
+
+  
+
+  // 2. Pass the exact same function to the hardware hook
+  useBarcodeScanner({
+    onScan: handleBarcodeProcess,
+  });
   useBarcodeScanner({
     onScan: (code) => {
       setBarcode(code);
@@ -131,7 +173,11 @@ export default function Page() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <div className="h-55 rounded-xl bg-muted/50">
-              <BarcodeCard barcode={barcode} scanStatus={scanStatus} />
+              <BarcodeCard
+                barcode={barcode}
+                scanStatus={scanStatus}
+                onScan={handleBarcodeProcess} // Added this missing link!
+              />
             </div>
 
             <div className="h-55  rounded-xl bg-muted/50">
