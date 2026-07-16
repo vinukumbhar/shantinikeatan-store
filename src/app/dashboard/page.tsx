@@ -27,7 +27,7 @@ import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 import { ProductImageGallery } from "@/components/pos-uniform/product-Image-gallery";
 
-import products from "@/data/products.json";
+import products from "@/components/pos-uniform/products.json";
 
 export default function Page() {
   const [barcode, setBarcode] = useState("");
@@ -42,12 +42,16 @@ export default function Page() {
     (typeof products)[number] | null
   >(null);
 
+  const [productFound, setProductFound] = useState<boolean | null>(null);
+
   const images = [
-    "/products/shirt/front.png",
-    "/products/shirt/back.png",
-    "/products/shirt/collar.png",
-    "/products/shirt/fabric.png",
+    "/products/defualt/front.png",
+    "/products/defualt/back.png",
+    "/products/defualt/side.png",
+    "/products/defualt/details.png",
   ];
+
+  
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -55,87 +59,74 @@ export default function Page() {
     (total, quantity) => total + quantity,
     0,
   );
-  // 1. Create a single shared handler function
+
+  
+
   const handleBarcodeProcess = (code: string) => {
     setBarcode(code);
-    setScanTime(new Date().toLocaleTimeString());
 
-    // Each scan adds one item
-    setQtyAdded(1);
+    // Look up item inside your JSON database file
+    const product = products.find((item) => item.barcode === code);
 
-    // Update cart quantity
-    setCart((prev) => ({
-      ...prev,
-      [code]: (prev[code] || 0) + 1,
-    }));
-
-    // Check if the same barcode was scanned
-    if (code === lastBarcodeRef.current) {
-      setTimesScanned((prev) => prev + 1);
-    } else {
-      lastBarcodeRef.current = code;
-      setTimesScanned(1);
-    }
-
-    // Show success message
-    setScanStatus("Product Scanned Successfully");
-
-    // Restart timer
+    // Restart timer immediately to clear previous countdown race states
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
 
-    timerRef.current = setTimeout(() => {
-      setScanStatus("Waiting for Scanner");
-      setQtyAdded(0);
-    }, 1500);
-
-    console.log("Processed Barcode:", code);
-  };
-
-  
-
-  // 2. Pass the exact same function to the hardware hook
-  useBarcodeScanner({
-    onScan: handleBarcodeProcess,
-  });
-  useBarcodeScanner({
-    onScan: (code) => {
-      setBarcode(code);
-      setScanTime(new Date().toLocaleTimeString());
-
-      // Each scan adds one item
+    if (product) {
+      // 🟢 VALID PRODUCT SCENARIO
+      setSelectedProduct(product);
+      setProductFound(true);
+      setScanStatus("Product Scanned Successfully");
       setQtyAdded(1);
 
-      // Update cart quantity
+      // Update cart quantity array metrics
       setCart((prev) => ({
         ...prev,
         [code]: (prev[code] || 0) + 1,
       }));
 
-      // Check if the same barcode was scanned
+      // Tracks product continuity to reset the counter
       if (code === lastBarcodeRef.current) {
-        setTimesScanned((prev) => prev + 1);
+        setTimesScanned((prev) => prev + 1); // Increments if it's the exact same item again
       } else {
-        lastBarcodeRef.current = code;
-        setTimesScanned(1);
+        lastBarcodeRef.current = code; // Remember this valid product
+        setTimesScanned(1); // Resets count cleanly back to 1 for the new product
       }
 
-      // Show success message
-      setScanStatus("Product Scanned Successfully");
+      setScanTime(new Date().toLocaleTimeString());
 
-      // Restart timer
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-
+      // Schedule basic success layout status reset
       timerRef.current = setTimeout(() => {
         setScanStatus("Waiting for Scanner");
         setQtyAdded(0);
       }, 1500);
+    } else {
+      // 🔴 INVALID PRODUCT SCENARIO: Blocks cart updates completely
+      setSelectedProduct(null);
+      setProductFound(false);
+      setScanStatus("Product Not Found");
+      setTimesScanned(1);
 
-      console.log("Scanned:", code);
-    },
+      // CRITICAL FIX: Update the reference to the invalid code so that the next valid scan
+      // is guaranteed to look different and force a count reset back to 1
+      lastBarcodeRef.current = code;
+
+      // Schedule deep error layout clear-out reset
+      timerRef.current = setTimeout(() => {
+        setScanStatus("Waiting for Scanner");
+        setQtyAdded(0);
+        setProductFound(null);
+        setSelectedProduct(null);
+      }, 1500);
+    }
+
+    console.log("Processed Barcode:", code);
+  };
+
+  // 2. Pass the exact same function to the hardware hook
+  useBarcodeScanner({
+    onScan: handleBarcodeProcess,
   });
   return (
     <SidebarProvider
@@ -172,15 +163,17 @@ export default function Page() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="h-55 rounded-xl bg-muted/50">
-              <BarcodeCard
-                barcode={barcode}
-                scanStatus={scanStatus}
-                onScan={handleBarcodeProcess} // Added this missing link!
-              />
+            <div className="h-55 rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md flex items-center justify-center p-5">
+              <div className="w-full">
+                <BarcodeCard
+                  barcode={barcode}
+                  scanStatus={scanStatus}
+                  onScan={handleBarcodeProcess}
+                />
+              </div>
             </div>
 
-            <div className="h-55  rounded-xl bg-muted/50">
+            <div className="h-55 rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md">
               <div>
                 <div className="flex h-full flex-col p-5">
                   {/* Product Info */}
@@ -189,12 +182,24 @@ export default function Page() {
                       Product
                     </p>
 
-                    <h3 className="mt-2 text-xl font-bold leading-tight">
-                      School Shirt (Full Sleeve)
+                    <h3
+                      className={`mt-2 text-xl font-bold leading-tight ${
+                        productFound === false
+                          ? "text-red-600"
+                          : productFound === null
+                            ? "text-muted-foreground"
+                            : ""
+                      }`}
+                    >
+                      {productFound === null
+                        ? "Scan a Product"
+                        : productFound
+                          ? selectedProduct?.name
+                          : "Product Not Found"}
                     </h3>
                   </div>
 
-                  <Separator className="my-5" />
+                  <Separator className="my-5 opacity-60" />
 
                   {/* Statistics */}
                   <div className="grid grid-cols-2 gap-4">
@@ -221,12 +226,12 @@ export default function Page() {
                 </div>
               </div>
             </div>
-            <div className="h-55 rounded-xl bg-muted/50">
-              {" "}
+
+            <div className="h-55 rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md">
               <div>
-                <div className="flex h-full flex-col p-5">
+                <div className="flex h-full flex-col justify-between p-5">
                   {/* Total Items */}
-                  <div className="rounded-lg border bg-muted/30 p-4 text-center">
+                  <div className="rounded-xl border bg-muted/20 p-4 text-center transition-colors duration-200 hover:bg-muted/40 backdrop-blur-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Total Items in Cart
                     </p>
@@ -237,16 +242,16 @@ export default function Page() {
                   </div>
 
                   {/* Divider */}
-                  <Separator className="my-5" />
+                  <Separator className="my-3.5 opacity-60" />
 
                   {/* Information */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">
                         Last Scan
                       </span>
 
-                      <span className="font-semibold">
+                      <span className="font-semibold px-2 py-0.5 rounded-md bg-muted/40 border text-xs">
                         {scanTime || "--:--:--"}
                       </span>
                     </div>
@@ -256,7 +261,7 @@ export default function Page() {
                         Scanner Status
                       </span>
 
-                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border border-green-200/50 rounded-full px-2.5 py-0.5 text-[11px]">
                         Connected
                       </Badge>
                     </div>
@@ -272,88 +277,152 @@ export default function Page() {
                 {/* Left Side - Product Image */}
                 <div className="col-span-12 lg:col-span-5">
                   <ProductImageGallery
-                    productName="School Shirt (Full Sleeve)"
-                    images={images}
+                    key={selectedProduct?.barcode || "default-gallery"} // 🟢 CRITICAL FIX: Forces the entire component to re-render when a new item is scanned
+                    productName={selectedProduct?.name || "Product"}
+                    images={selectedProduct?.images || images}
                   />
                 </div>
 
+                {/* Right Side */}
                 {/* Right Side */}
                 <div className="col-span-12 lg:col-span-7 flex flex-col gap-6">
                   {/* Product Header */}
                   <div className="space-y-4">
                     <div>
-                      <h2 className="text-3xl font-bold">
-                        School Shirt (Full Sleeve)
+                      {/* Product Name Title Header */}
+                      <h2
+                        className={`text-3xl font-bold transition-colors ${!selectedProduct ? "text-muted-foreground/40 italic font-medium" : "text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.name
+                          : "Scan a product "}
                       </h2>
 
-                      <p className="mt-2 text-3xl font-bold text-primary">
-                        ₹450.00
+                      {/* Product Price Tag */}
+                      <p
+                        className={`mt-2 text-3xl font-bold transition-colors ${!selectedProduct ? "text-muted-foreground/30" : "text-primary"}`}
+                      >
+                        {selectedProduct
+                          ? `₹${selectedProduct.price.toFixed(2)}`
+                          : "₹--.--"}
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between border-b pb-4">
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-700 hover:bg-green-100"
-                      >
-                        🛍 In Stock
-                      </Badge>
+                      {/* Dynamic Stock Badge Display layout */}
+                      {selectedProduct ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-700 hover:bg-green-100"
+                        >
+                          🛍 In Stock
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-muted-foreground/40 border-dashed bg-transparent"
+                        >
+                          ⏹ No Item Active
+                        </Badge>
+                      )}
 
                       <span className="text-sm font-medium text-muted-foreground">
                         Stock:
-                        <span className="ml-1 font-semibold text-foreground">
-                          120 pcs
+                        <span
+                          className={`ml-1 font-semibold ${!selectedProduct ? "text-muted-foreground/40" : "text-foreground"}`}
+                        >
+                          {selectedProduct
+                            ? `${selectedProduct.stock} pcs`
+                            : "-- pcs"}
                         </span>
                       </span>
                     </div>
                   </div>
 
-                  {/* Product Specifications */}
+                  {/* Product Specifications Layout Box Grid */}
                   <div className="rounded-lg border bg-card p-5">
                     <div className="grid grid-cols-2 gap-y-4">
                       <span className="text-sm text-muted-foreground">SKU</span>
-                      <span className="text-sm font-semibold">UNI-20001</span>
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct ? selectedProduct.sku : "Not Scanned"}
+                      </span>
 
                       <span className="text-sm text-muted-foreground">
                         Category
                       </span>
-                      <span className="text-sm font-semibold">Uniforms</span>
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.category
+                          : "Not Scanned"}
+                      </span>
 
                       <span className="text-sm text-muted-foreground">
                         Brand
                       </span>
-                      <span className="text-sm font-semibold">SchoolHub</span>
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.brand
+                          : "Not Scanned"}
+                      </span>
 
                       <span className="text-sm text-muted-foreground">
                         Size
                       </span>
-                      <span className="text-sm font-semibold">
-                        S, M, L, XL, XXL
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.sizes.join(", ")
+                          : "Not Scanned"}
                       </span>
 
                       <span className="text-sm text-muted-foreground">
                         Color
                       </span>
-                      <span className="text-sm font-semibold">Light Blue</span>
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.color
+                          : "Not Scanned"}
+                      </span>
 
                       <span className="text-sm text-muted-foreground">
                         Material
                       </span>
-                      <span className="text-sm font-semibold">
-                        Cotton Blend
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.material
+                          : "Not Scanned"}
                       </span>
 
                       <span className="text-sm text-muted-foreground">
                         Barcode
                       </span>
-                      <span className="text-sm font-semibold">
-                        8901234567890
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct
+                          ? selectedProduct.barcode
+                          : "Not Scanned"}
                       </span>
 
                       <span className="text-sm text-muted-foreground">
                         HSN Code
                       </span>
-                      <span className="text-sm font-semibold">62052000</span>
+                      <span
+                        className={`text-sm ${!selectedProduct ? "text-muted-foreground/40 italic" : "font-semibold text-foreground"}`}
+                      >
+                        {selectedProduct ? selectedProduct.hsn : "Not Scanned"}
+                      </span>
                     </div>
                   </div>
                 </div>

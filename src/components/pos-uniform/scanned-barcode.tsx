@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Barcode from "react-barcode";
 import { CircleCheck } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 interface BarcodeCardProps {
@@ -29,31 +28,12 @@ export function BarcodeCard({ barcode, scanStatus, onScan }: BarcodeCardProps) {
   };
 
   return (
-    <Card className="w-full shadow-none border-0">
-      {/* <CardHeader className="pt-2 pb-0">
-        <CardTitle className="flex items-center gap-2">
-          <CircleCheck
-            className={`h-4 w-4 ${
-              scanStatus === "Product Scanned Successfully"
-                ? "text-green-600"
-                : "text-muted-foreground"
-            }`}
-          />
-          <span
-            className={`text-xs font-semibold ${
-              scanStatus === "Product Scanned Successfully"
-                ? "text-green-600"
-                : "text-muted-foreground"
-            }`}
-          >
-            {scanStatus}
-          </span>
-        </CardTitle>
-      </CardHeader> */}
-
-        {/* Zero padding structure on the header container */}
-      <CardHeader className="p-0 mb-1 ml-4">
-        <CardTitle className="flex items-center gap-1.5 ">
+    // 🟢 FIXED: Swapped out outer <Card> wrapper for a clean un-bordered layout shell
+    <div className="w-full bg-transparent p-0">
+      
+      {/* 🟢 FIXED: Replaced <CardHeader> with a clean plain div block to strip secondary borders */}
+      <div className="p-0 mb-1 ml-4">
+        <div className="flex items-center gap-1.5">
           <CircleCheck
             className={`h-5 w-5 ${
               scanStatus === "Product Scanned Successfully"
@@ -70,22 +50,21 @@ export function BarcodeCard({ barcode, scanStatus, onScan }: BarcodeCardProps) {
           >
             {scanStatus}
           </span>
-        </CardTitle>
-      </CardHeader>
+        </div>
+      </div>
 
-      <CardContent className="pt-1 pb-1">
+      {/* 🟢 FIXED: Replaced <CardContent> with a clean plain padding container */}
+      <div className="pt-1 pb-1">
         <div>
-          
-
           <div className="flex flex-col items-center justify-center py-1">
             <p className="mb-1 text-[12px] font-bold text-blue-600">
-            Scanned Barcode
-          </p>
+              Scanned Barcode
+            </p>
+            
             {hasBarcode ? (
               <div className="overflow-x-auto w-full flex justify-center mb-1">
                 <Barcode
                   value={trimmedBarcode}
-                  // CRITICAL CHANGE: Forcing CODE128 makes all vertical lines perfectly equal in height
                   format="CODE128"
                   width={trimmedBarcode.length > 15 ? 1.5 : 2.2}
                   height={35}
@@ -122,7 +101,7 @@ export function BarcodeCard({ barcode, scanStatus, onScan }: BarcodeCardProps) {
             Scan a product barcode or QR code to add item to cart
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
