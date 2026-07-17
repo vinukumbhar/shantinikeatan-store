@@ -29,6 +29,8 @@ import { ProductImageGallery } from "@/components/pos-uniform/product-Image-gall
 
 import products from "@/components/pos-uniform/products.json";
 
+import { usePOSStore } from "@/stores/usePOSStore";
+
 export default function Page() {
   const [barcode, setBarcode] = useState("");
   const [scanTime, setScanTime] = useState("");
@@ -38,11 +40,12 @@ export default function Page() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const currentCartQuantity = cart[barcode] || 0;
   const [qtyAdded, setQtyAdded] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState<
-    (typeof products)[number] | null
-  >(null);
+
 
   const [productFound, setProductFound] = useState<boolean | null>(null);
+
+  const selectedProduct = usePOSStore((state) => state.selectedProduct);
+  const setSelectedProduct = usePOSStore((state) => state.setSelectedProduct);
 
   const images = [
     "/products/defualt/front.png",
@@ -51,16 +54,12 @@ export default function Page() {
     "/products/defualt/details.png",
   ];
 
-  
-
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const totalItemsInCart = Object.values(cart).reduce(
     (total, quantity) => total + quantity,
     0,
   );
-
-  
 
   const handleBarcodeProcess = (code: string) => {
     setBarcode(code);
