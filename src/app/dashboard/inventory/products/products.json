@@ -1,0 +1,120 @@
+[
+  {
+    "barcode": "8901234567890",
+    "name": "School Shirt (Full Sleeve)",
+    "price": 450,
+    "stock": 20,
+    "sku": "UNI-20001",
+    "category": "Uniforms",
+    "brand": "SchoolHub",
+    "sizes": ["S", "M", "L", "XL", "XXL"],
+    "color": "Light Blue",
+    "material": "Cotton Blend",
+    "hsn": "62052000",
+    
+    "images": [
+      "/products/shirt/front.png",
+      "/products/shirt/back.png",
+      "/products/shirt/fabric.png",
+      "/products/shirt/collar.png"
+    ]
+  },
+  {
+    "barcode": "8901234567891",
+    "name": "School Shorts",
+    "price": 350,
+    "stock": 80,
+    "sku": "UNI-20002",
+    "category": "Uniforms",
+    "brand": "SchoolHub",
+    "sizes": ["24","26","28","30"],
+    "color": "Navy Blue",
+    "material": "Cotton",
+    "hsn": "62034200",
+   
+    "images": [
+      "/products/shorts/front.png",
+      "/products/shorts/back.png",
+      "/products/shorts/side.png",
+      "/products/shorts/detail.png"
+    ]
+  },
+  {
+  "barcode": "8901234567892",
+  "name": "School Shoes",
+  "price": 950,
+  "stock": 65,
+  "sku": "UNI-20003",
+  "category": "Footwear",
+  "brand": "SchoolHub",
+  "sizes": ["4", "5", "6", "7", "8", "9", "10"],
+  "color": "Black",
+  "material": "Synthetic Leather",
+  "hsn": "64039990",
+ 
+  "images": [
+    "/products/shoes/front.png",
+    "/products/shoes/back.png",
+    "/products/shoes/side.png",
+    "/products/shoes/bottom.png"
+  ]
+},
+{
+  "barcode": "8901234567893",
+  "name": "School Tie",
+  "price": 180,
+  "stock": 150,
+  "sku": "UNI-20004",
+  "category": "Accessories",
+  "brand": "SchoolHub",
+  "sizes": ["Standard"],
+  "color": "Navy Blue",
+  "material": "Polyester",
+  "hsn": "62152000",
+ 
+  "images": [
+    "/products/tie/front.png",
+    "/products/tie/back.png",
+    "/products/tie/side.png",
+    "/products/tie/detail.png"
+  ]
+},{
+  "barcode": "8901234567894",
+  "name": "School Belt",
+  "price": 220,
+  "stock": 120,
+  "sku": "UNI-20005",
+  "category": "Accessories",
+  "brand": "SchoolHub",
+  "sizes": ["28", "30", "32", "34", "36", "38"],
+  "color": "Navy Blue / White",
+  "material": "Woven Nylon",
+  "hsn": "62171090",
+
+  "images": [
+    "/products/belt/front.png",
+    "/products/belt/back.png",
+    "/products/belt/side.png",
+    "/products/belt/detail.png"
+  ]
+},{
+  "barcode": "8901234567895",
+  "name": "School Socks",
+  "price": 120,
+  "stock": 200,
+  "sku": "UNI-20006",
+  "category": "Accessories",
+  "brand": "SchoolHub",
+  "sizes": ["S", "M", "L"],
+  "color": "Navy Blue",
+  "material": "Cotton Blend",
+  "hsn": "61159500",
+
+  "images": [
+    "/products/socks/front.png",
+    "/products/socks/back.png",
+    "/products/socks/side.png",
+    "/products/socks/detail.png"
+  ]
+}
+]

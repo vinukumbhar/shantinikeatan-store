@@ -18,7 +18,7 @@ export const users = [
     password: "uniform123",
     role: "Uniform Store",
     store: "Uniform Store",
-    dashboard: "/dashboard/uniform",
+    dashboard: "/posuniform",
   },
   {
     username: "book",
