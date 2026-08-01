@@ -1,0 +1,181 @@
+model Brand {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  code        String?   @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Company {
+  id           String   @id @default(cuid())
+  name         String
+  legalName    String?
+  code         String?  @unique
+  gstNumber    String?  @unique
+  panNumber    String?  @unique
+  email        String?
+  phone        String?
+  mobile       String?
+  website      String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  country      String?
+  pincode      String?
+  logo         String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Currency {
+  id            String      @id @default(cuid())
+  name          String
+  code          String      @unique
+  symbol        String
+  decimalPlaces Int         @default(2)
+  isBase        Boolean     @default(false)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  priceLists    PriceList[]
+}
+
+model Tax {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  rate        Decimal   @db.Decimal(5, 2)
+  type        TaxType
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Unit {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  shortName   String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Attribute {
+  id                String             @id @default(cuid())
+  name              String
+  code              String             @unique
+  description       String?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  values            AttributeValue[]
+  variantAttributes VariantAttribute[]
+}
+
+model AttributeValue {
+  id                String             @id @default(cuid())
+
+  // Business Code
+  code             String?              @unique
+
+  // Used in SKU generation
+  skuCode           String?            @db.VarChar(10)
+
+  name              String
+
+  attributeId       String
+  description       String?
+  isActive          Boolean            @default(true)
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  attribute         Attribute          @relation(fields: [attributeId], references: [id])
+  variantAttributes VariantAttribute[]
+
+  @@unique([attributeId, skuCode])
+}
+
+model Warehouse {
+  id          String     @id @default(cuid())
+  name        String
+  code        String     @unique
+  description String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  pincode     String?
+  phone       String?
+  email       String?
+  isDefault   Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  locations   Location[]
+}
+
+model Location {
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  warehouseId String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PaymentTerm {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  dueDays     Int      @default(0)
+  description String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum TaxType {
+  GST
+  IGST
+  CGST
+  SGST
+  CESS
+}

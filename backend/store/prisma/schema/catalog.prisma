@@ -1,0 +1,119 @@
+model Product {
+  id             String           @id @default(cuid())
+  name           String
+  code           String           @unique
+  sku            String?          
+  description    String?
+  brandId        String?
+  categoryId     String?
+  unitId         String?
+  taxId          String?
+  hsnCode        String?
+  manufacturer   String?
+  originCountry  String?
+  hasVariants    Boolean          @default(false)
+  trackInventory Boolean          @default(true)
+  allowBackorder Boolean          @default(false)
+  weight         Decimal?         @db.Decimal(10, 2)
+  length         Decimal?         @db.Decimal(10, 2)
+  width          Decimal?         @db.Decimal(10, 2)
+  height         Decimal?         @db.Decimal(10, 2)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  brand          Brand?           @relation(fields: [brandId], references: [id])
+  category       Category?        @relation(fields: [categoryId], references: [id])
+  tax            Tax?             @relation(fields: [taxId], references: [id])
+  unit           Unit?            @relation(fields: [unitId], references: [id])
+  images         ProductImage[]
+  variants       ProductVariant[]
+}
+
+model ProductVariant {
+  id           String             @id @default(cuid())
+  productId    String
+  name         String?
+  sku          String             @unique
+  costPrice    Decimal            @db.Decimal(10, 2)
+  sellingPrice Decimal            @db.Decimal(10, 2)
+  weight       Decimal?           @db.Decimal(10, 2)
+  length       Decimal?           @db.Decimal(10, 2)
+  width        Decimal?           @db.Decimal(10, 2)
+  height       Decimal?           @db.Decimal(10, 2)
+  isActive     Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  barcodes     Barcode[]
+  prices       ProductPrice[]
+  product      Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributes   VariantAttribute[]
+}
+
+model VariantAttribute {
+  id               String         @id @default(cuid())
+  variantId        String
+  attributeId      String
+  attributeValueId String
+  attribute        Attribute      @relation(fields: [attributeId], references: [id])
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
+  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, attributeId])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  imageUrl  String
+  altText   String?
+  sortOrder Int      @default(1)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Barcode {
+  id        String         @id @default(cuid())
+  variantId String
+  barcode   String         @unique
+  type      BarcodeType    @default(CODE128)
+  isPrimary Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+}
+
+model PriceList {
+  id          String         @id @default(cuid())
+  name        String
+  code        String         @unique
+  currencyId  String
+  description String?
+  isDefault   Boolean        @default(false)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  currency    Currency       @relation(fields: [currencyId], references: [id])
+  prices      ProductPrice[]
+}
+
+model ProductPrice {
+  id            String         @id @default(cuid())
+  variantId     String
+  priceListId   String
+  price         Decimal        @db.Decimal(10, 2)
+  effectiveFrom DateTime?
+  effectiveTo   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  priceList     PriceList      @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, priceListId])
+}
+
+enum BarcodeType {
+  EAN13
+  CODE128
+  UPC
+  QR
+}
