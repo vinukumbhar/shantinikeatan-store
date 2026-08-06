@@ -7,7 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-import PriceForm from "./bulk-actions/set-price"
+import PriceForm from "./bulk-actions/bulk-images"
 
 // types.ts
 export type BulkAction =
@@ -26,7 +26,7 @@ interface BulkActionSheetProps {
 function getTitle(action: BulkAction | null) {
   switch (action) {
     case "price":
-      return "Update Prices";
+      return "Add Images";
 
     case "openingStock":
       return "Update Opening Stock";

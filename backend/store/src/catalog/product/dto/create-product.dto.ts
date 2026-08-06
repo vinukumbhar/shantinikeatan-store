@@ -1,19 +1,17 @@
 import {
+  IsArray,
   IsBoolean,
-  IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateProductDto {
   @IsString()
   name!: string;
 
-
   @IsOptional()
   @IsString()
-  code!: string;
+  code?: string;
 
   @IsOptional()
   @IsString()
@@ -24,19 +22,20 @@ export class CreateProductDto {
   description?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   brandId?: string;
 
   @IsOptional()
-  @IsUUID()
-  categoryId?: string;
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds?: string[];
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   unitId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   taxId?: string;
 
   @IsOptional()
@@ -63,21 +62,19 @@ export class CreateProductDto {
   @IsBoolean()
   allowBackorder?: boolean;
 
+  // Image Relations (IDs)
   @IsOptional()
-  @IsNumber()
-  weight?: number;
+  @IsString()
+  thumbnailImageId?: string;
 
   @IsOptional()
-  @IsNumber()
-  length?: number;
+  @IsString()
+  heroImageId?: string;
 
   @IsOptional()
-  @IsNumber()
-  width?: number;
-
-  @IsOptional()
-  @IsNumber()
-  height?: number;
+  @IsArray()
+  @IsString({ each: true })
+  galleryImageIds?: string[];
 
   @IsOptional()
   @IsBoolean()

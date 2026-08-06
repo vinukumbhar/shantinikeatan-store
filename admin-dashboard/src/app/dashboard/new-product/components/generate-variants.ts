@@ -1,87 +1,4 @@
-// import {
-//   MasterData,
-//   ProductVariant,
-//   VariantAttribute,
-//   useProductStore,
-// } from "../store/product-store";
 
-// export function generateVariants(
-//   rows: VariantAttribute[],
-//   masterData: MasterData,
-//   previousVariants: ProductVariant[] = [],
-// ): ProductVariant[] {
-//   // Get Step 1 data from Zustand
-//   const { basicInformation } = useProductStore.getState();
-//   const baseSku = basicInformation.sku?.trim() ?? "";
-
-//   const attributeGroups = rows.map((row) => {
-//     const attributeName =
-//       masterData.attributes.find(
-//         (a) => String(a.id) === String(row.attributeId),
-//       )?.name ?? "";
-
-//     const values = row.attributeValues
-//       .map(
-//         (valueId) =>
-//           masterData.attributeValues.find(
-//             (v) => String(v.id) === String(valueId),
-//           )?.name ?? "",
-//       )
-//       .filter(Boolean);
-
-//     return {
-//       attributeName,
-//       values,
-
-//     };
-//   });
-
-//   const result: ProductVariant[] = [];
-
-//   function combine(index: number, current: Record<string, string>) {
-//     if (index === attributeGroups.length) {
-//       const existing = previousVariants.find((variant) => {
-//         const keys = Object.keys(current);
-
-//         return (
-//           keys.length === Object.keys(variant.attributes).length &&
-//           keys.every((key) => variant.attributes[key] === current[key])
-//         );
-//       });
-
-//       const attributePart = Object.values(current)
-//         .map((v) => v.toUpperCase().replace(/\s+/g, "-"))
-//         .join("-");
-
-//       const sku = [baseSku, attributePart].filter(Boolean).join("-");
-
-//       result.push({
-//         id: existing?.id ?? crypto.randomUUID(),
-//         sku: existing?.sku || sku,
-//         barcode: existing?.barcode ?? "",
-//         attributes: { ...current },
-//         sellingPrice: existing?.sellingPrice ?? 0,
-//         costPrice: existing?.costPrice ?? 0,
-//         openingStock: existing?.openingStock ?? 0,
-//       });
-
-//       return;
-//     }
-
-//     const group = attributeGroups[index];
-
-//     for (const value of group.values) {
-//       combine(index + 1, {
-//         ...current,
-//         [group.attributeName]: value,
-//       });
-//     }
-//   }
-
-//   combine(0, {});
-
-//   return result;
-// }
 
 import {
   MasterData,
@@ -166,12 +83,24 @@ export function generateVariants(
 
       result.push({
         id: existing?.id ?? crypto.randomUUID(),
+
         sku: existing?.sku ?? sku,
         barcode: existing?.barcode ?? barcode,
+
         attributes: { ...current },
+
         sellingPrice: existing?.sellingPrice ?? 0,
         costPrice: existing?.costPrice ?? 0,
         openingStock: existing?.openingStock ?? 0,
+
+        // Preserve images
+        imageIds: existing?.imageIds ?? [],
+
+        // Preserve thumbnail
+        thumbnailId: existing?.thumbnailId,
+
+        // Preserve hero image
+        heroImageId: existing?.heroImageId,
       });
 
       return;

@@ -1,91 +1,68 @@
-const data = [
-  // =====================================
-  // School Shirt White S
-  // =====================================
+import { PrismaClient } from '@prisma/client';
 
-  {
-    variant: 'UNI-SHIRT-WHITE-S',
-    attribute: 'COLOR',
-    value: 'WHT',
-  },
-  {
-    variant: 'UNI-SHIRT-WHITE-S',
-    attribute: 'SIZE',
-    value: 'S',
-  },
+const prisma = new PrismaClient();
 
-  // =====================================
-  // School Shirt White M
-  // =====================================
+export async function seedVariantAttribute() {
+  const data = [
+    // White Shirt S
+    { variant: 'UNI-SHIRT-WHITE-S', attribute: 'COLOR', value: 'WHT' },
+    { variant: 'UNI-SHIRT-WHITE-S', attribute: 'SIZE', value: 'S' },
 
-  {
-    variant: 'UNI-SHIRT-WHITE-M',
-    attribute: 'COLOR',
-    value: 'WHT',
-  },
-  {
-    variant: 'UNI-SHIRT-WHITE-M',
-    attribute: 'SIZE',
-    value: 'M',
-  },
+    // White Shirt M
+    { variant: 'UNI-SHIRT-WHITE-M', attribute: 'COLOR', value: 'WHT' },
+    { variant: 'UNI-SHIRT-WHITE-M', attribute: 'SIZE', value: 'M' },
 
-  // =====================================
-  // School Shirt White L
-  // =====================================
+    // White Shirt L
+    { variant: 'UNI-SHIRT-WHITE-L', attribute: 'COLOR', value: 'WHT' },
+    { variant: 'UNI-SHIRT-WHITE-L', attribute: 'SIZE', value: 'L' },
 
-  {
-    variant: 'UNI-SHIRT-WHITE-L',
-    attribute: 'COLOR',
-    value: 'WHT',
-  },
-  {
-    variant: 'UNI-SHIRT-WHITE-L',
-    attribute: 'SIZE',
-    value: 'L',
-  },
+    // Shoe 7
+    { variant: 'SHOE-7', attribute: 'COLOR', value: 'BLK' },
+    { variant: 'SHOE-7', attribute: 'SHOE_SIZE', value: '7' },
 
-  // =====================================
-  // School Shoe 7
-  // =====================================
+    // Shoe 8
+    { variant: 'SHOE-8', attribute: 'COLOR', value: 'BLK' },
+    { variant: 'SHOE-8', attribute: 'SHOE_SIZE', value: '8' },
 
-  {
-    variant: 'SHOE-7',
-    attribute: 'COLOR',
-    value: 'BLK',
-  },
-  {
-    variant: 'SHOE-7',
-    attribute: 'SHOE_SIZE',
-    value: '7',
-  },
+    // Shoe 9
+    { variant: 'SHOE-9', attribute: 'COLOR', value: 'BLK' },
+    { variant: 'SHOE-9', attribute: 'SHOE_SIZE', value: '9' },
+  ];
 
-  // =====================================
-  // School Shoe 8
-  // =====================================
+  for (const item of data) {
+    const variant = await prisma.productVariant.findFirst({
+      where: {
+        sku: item.variant,
+      },
+    });
 
-  {
-    variant: 'SHOE-8',
-    attribute: 'COLOR',
-    value: 'BLK',
-  },
-  {
-    variant: 'SHOE-8',
-    attribute: 'SHOE_SIZE',
-    value: '8',
-  },
+    if (!variant) continue;
 
-  // =====================================
-  // School Shoe 9
-  // =====================================
+    const attribute = await prisma.attribute.findFirst({
+      where: {
+        code: item.attribute,
+      },
+    });
 
-  {
-    variant: 'SHOE-9',
-    attribute: 'COLOR',
-    value: 'BLK',
-  },
-  {
-    variant: 'SHOE-9',
-    attribute: 'SHOE_SIZE',
-    value: '9',
-  },
-];
+    if (!attribute) continue;
+
+    const attributeValue = await prisma.attributeValue.findFirst({
+      where: {
+        attributeId: attribute.id,
+        skuCode: item.value,
+      },
+    });
+
+    if (!attributeValue) continue;
+
+    await prisma.variantAttribute.create({
+      data: {
+        variantId: variant.id,
+        attributeId: attribute.id,
+        attributeValueId: attributeValue.id,
+      },
+    });
+  }
+
+  console.log('✅ Variant Attributes Seeded');
+}

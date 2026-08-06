@@ -1,37 +1,45 @@
 import {
+  IsArray,
   IsBoolean,
-  IsNumber,
   IsOptional,
   IsString,
-} from 'class-validator';
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
+
+class VariantAttributeDto {
+  @IsString()
+  attributeId!: string;
+
+  @IsString()
+  attributeValueId!: string;
+}
 
 export class CreateProductVariantDto {
   @IsString()
-  productId: string;
+  productId!: string;
 
   @IsString()
-  name: string;
+  sku!: string;
 
-  @IsString()
-  sku: string;
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VariantAttributeDto)
+  attributes!: VariantAttributeDto[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  galleryImageIds?: string[];
 
   @IsOptional()
   @IsString()
-  barcode?: string;
+  thumbnailImageId?: string;
 
   @IsOptional()
-  @IsNumber()
-  mrp?: number;
-
-  @IsNumber()
-  sellingPrice: number;
-
-  @IsNumber()
-  costPrice: number;
-
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
+  @IsString()
+  heroImageId?: string;
 
   @IsOptional()
   @IsBoolean()

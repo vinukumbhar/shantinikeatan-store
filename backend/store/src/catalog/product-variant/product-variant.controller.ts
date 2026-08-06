@@ -19,7 +19,9 @@ export class ProductVariantController {
   ) {}
 
   @Post()
-  create(@Body() dto: CreateProductVariantDto) {
+  create(
+    @Body() dto: CreateProductVariantDto,
+  ) {
     return this.productVariantService.create(dto);
   }
 
@@ -29,7 +31,9 @@ export class ProductVariantController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(
+    @Param('id') id: string,
+  ) {
     return this.productVariantService.findOne(id);
   }
 
@@ -42,7 +46,9 @@ export class ProductVariantController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(
+    @Param('id') id: string,
+  ) {
     return this.productVariantService.remove(id);
   }
 }

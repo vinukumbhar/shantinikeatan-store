@@ -4,48 +4,39 @@ export async function seedProductImage(prisma: PrismaClient) {
   console.log("🌱 Seeding Product Images...");
 
   const products = Object.fromEntries(
-    (await prisma.product.findMany()).map((p) => [p.sku, p.id])
+    (await prisma.product.findMany()).map((p) => [p.sku, p.id]),
   );
 
   const images = [
     {
       product: "UNI-SHIRT",
-      imageUrl: "/products/shirt/front.png",
-      altText: "School Shirt Front",
-      sortOrder: 1,
-      isPrimary: true,
+      path: "/products/shirt/front.png",
     },
     {
       product: "UNI-SHIRT",
-      imageUrl: "/products/shirt/back.png",
-      altText: "School Shirt Back",
-      sortOrder: 2,
-      isPrimary: false,
+      path: "/products/shirt/back.png",
     },
     {
       product: "SHOE-SCHOOL",
-      imageUrl: "/products/shoe/front.png",
-      altText: "School Shoe",
-      sortOrder: 1,
-      isPrimary: true,
+      path: "/products/shoe/front.png",
     },
     {
       product: "NOTEBOOK",
-      imageUrl: "/products/notebook/front.png",
-      altText: "Notebook",
-      sortOrder: 1,
-      isPrimary: true,
+      path: "/products/notebook/front.png",
     },
   ];
 
   for (const image of images) {
+    const productId = products[image.product];
+
+    if (!productId) {
+      throw new Error(`Product not found: ${image.product}`);
+    }
+
     await prisma.productImage.create({
       data: {
-        productId: products[image.product],
-        imageUrl: image.imageUrl,
-        altText: image.altText,
-        sortOrder: image.sortOrder,
-        isPrimary: image.isPrimary,
+        productId,
+        path: image.path,
       },
     });
   }

@@ -1,8 +1,9 @@
+
+
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, SlidersHorizontal } from "lucide-react";
-
+import { ArrowRight, SlidersHorizontal, ImagePlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -10,31 +11,58 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MultiSearchableSelect } from "@/components/ui/MultiSearchableSelect";
-
+import ProductDefaultImages from "./product-image-selection";
 import { masterService } from "./master.service";
 import { useProductStore } from "../store/product-store";
+
+
 
 interface StepOneFormProps {
   onNext: () => void;
 }
 
 export default function StepOneForm({ onNext }: StepOneFormProps) {
-  // Store state
+
+
+  // Master options from store
   const categories = useProductStore((state) => state.masterData.categories);
   const brands = useProductStore((state) => state.masterData.brands);
   const units = useProductStore((state) => state.masterData.units);
   const setMasterData = useProductStore((state) => state.setMasterData);
 
-  // Form Field States
-  const [productName, setProductName] = useState("");
-  const [sku, setSku] = useState("");
-  const [categoryIds, setCategoryIds] = useState<string[]>([]);
-  const [brandId, setBrandId] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [description, setDescription] = useState("");
-  const [trackInventory, setTrackInventory] = useState(true);
-  const [isActive, setIsActive] = useState(true);
+  // Store basic information & action
+  const basicInformation = useProductStore((state) => state.basicInformation);
+  const setBasicInformation = useProductStore((state) => state.setBasicInformation);
 
+  // Read initial values from Zustand store ONCE on mount
+  const [productName, setProductName] = useState(
+    () => useProductStore.getState().basicInformation?.productName || ""
+  );
+  const [sku, setSku] = useState(
+    () => useProductStore.getState().basicInformation?.sku || ""
+  );
+  const [categoryIds, setCategoryIds] = useState<string[]>(
+    () => useProductStore.getState().basicInformation?.categoryIds || []
+  );
+  const [brandId, setBrandId] = useState(
+    () => useProductStore.getState().basicInformation?.brandId || ""
+  );
+  const [unitId, setUnitId] = useState(
+    () => useProductStore.getState().basicInformation?.unitId || ""
+  );
+  const [description, setDescription] = useState(
+    () => useProductStore.getState().basicInformation?.description || ""
+  );
+  const [trackInventory, setTrackInventory] = useState<boolean>(
+    () => useProductStore.getState().basicInformation?.trackInventory ?? true
+  );
+  const [isActive, setIsActive] = useState<boolean>(
+    () => useProductStore.getState().basicInformation?.isActive ?? true
+  );
+
+  const [imageSheetOpen, setImageSheetOpen] = useState(false);
+
+  // Load Master Data
   useEffect(() => {
     const loadMasters = async () => {
       try {
@@ -48,24 +76,31 @@ export default function StepOneForm({ onNext }: StepOneFormProps) {
     loadMasters();
   }, [setMasterData]);
 
-const setBasicInformation = useProductStore(
-  (state) => state.setBasicInformation
-);
+  const handleNext = () => {
+    const payload = {
+      productName,
+      sku,
+      categoryIds,
+      brandId,
+      unitId,
+      description,
+      trackInventory,
+      isActive,
+    };
 
-const handleNext = () => {
-  setBasicInformation({
-    productName,
-    sku,
-    categoryIds,
-    brandId,
-    unitId,
-    description,
-    trackInventory,
-    isActive,
-  });
+    console.log("[Before Save] Store State:", useProductStore.getState().basicInformation);
+    console.log("[Saving Payload]:", payload);
 
-  onNext();
-};
+    // Write to Zustand store synchronously
+    setBasicInformation(payload);
+
+    // Read direct store reference immediately post-write
+    const updatedStore = useProductStore.getState();
+    console.log("[After Save] Updated Zustand Store State:", updatedStore.basicInformation);
+
+    onNext();
+  };
+
   return (
     <div className="w-full space-y-6">
       {/* Form Header */}
@@ -162,9 +197,7 @@ const handleNext = () => {
 
         {/* Description */}
         <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-800">
-            Description
-          </Label>
+          <Label className="text-xs font-semibold text-slate-800">Description</Label>
           <div className="relative">
             <Textarea
               value={description}
@@ -179,6 +212,30 @@ const handleNext = () => {
         </div>
       </div>
 
+      {/* Default Product Images Selector */}
+      <div className="flex justify-between items-center rounded-lg border p-4">
+        <div>
+          <h3 className="text-sm font-semibold">Default Product Images</h3>
+          <p className="text-xs text-muted-foreground">
+            Select gallery, thumbnail and hero image.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setImageSheetOpen(true)}
+        >
+          <ImagePlus className="mr-2 h-4 w-4" />
+          Select Images
+        </Button>
+      </div>
+
+      <ProductDefaultImages
+        open={imageSheetOpen}
+        onOpenChange={setImageSheetOpen}
+      />
+
       {/* Toggles */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
         {/* Toggle: Track Inventory */}
@@ -188,9 +245,7 @@ const handleNext = () => {
               <SlidersHorizontal className="h-4 w-4 transform rotate-90" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900">
-                Track Inventory
-              </h4>
+              <h4 className="text-xs font-bold text-slate-900">Track Inventory</h4>
               <p className="text-[10px] font-medium text-slate-400 mt-0.5">
                 Enable inventory tracking for this product
               </p>

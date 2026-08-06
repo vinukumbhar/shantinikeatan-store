@@ -71,15 +71,14 @@ model Unit {
 }
 
 model Category {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  code        String    @unique
+  code        String   @unique
   description String?
   image       String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Attribute {
@@ -95,22 +94,22 @@ model Attribute {
 }
 
 model AttributeValue {
-  id                String             @id @default(cuid())
+  id String @id @default(cuid())
 
   // Business Code
-  code             String?              @unique
+  code String? @unique
 
   // Used in SKU generation
-  skuCode           String?            @db.VarChar(10)
+  skuCode String? @db.VarChar(10)
 
-  name              String
+  name String
 
-  attributeId       String
-  description       String?
-  isActive          Boolean            @default(true)
+  attributeId String
+  description String?
+  isActive    Boolean @default(true)
 
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   attribute         Attribute          @relation(fields: [attributeId], references: [id])
   variantAttributes VariantAttribute[]

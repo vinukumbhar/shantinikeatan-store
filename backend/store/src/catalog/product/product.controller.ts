@@ -22,6 +22,12 @@ export class ProductController {
     return this.productService.create(dto);
   }
 
+  // 1. Move static routes to the top
+@Get('summary-list')
+findAllSummaries() {
+  return this.productService.findAllSummaries();
+}
+
   @Get()
   findAll() {
     return this.productService.findAll();
@@ -44,4 +50,6 @@ export class ProductController {
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }
+
+
 }

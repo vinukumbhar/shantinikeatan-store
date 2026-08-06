@@ -1,52 +1,83 @@
+
+
+
 model Product {
-  id             String           @id @default(cuid())
-  name           String
-  code           String           @unique
-  sku            String?          
-  description    String?
-  brandId        String?
-  categoryId     String?
-  unitId         String?
-  taxId          String?
-  hsnCode        String?
-  manufacturer   String?
-  originCountry  String?
-  hasVariants    Boolean          @default(false)
-  trackInventory Boolean          @default(true)
-  allowBackorder Boolean          @default(false)
-  weight         Decimal?         @db.Decimal(10, 2)
-  length         Decimal?         @db.Decimal(10, 2)
-  width          Decimal?         @db.Decimal(10, 2)
-  height         Decimal?         @db.Decimal(10, 2)
-  isActive       Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  brand          Brand?           @relation(fields: [brandId], references: [id])
-  category       Category?        @relation(fields: [categoryId], references: [id])
-  tax            Tax?             @relation(fields: [taxId], references: [id])
-  unit           Unit?            @relation(fields: [unitId], references: [id])
-  images         ProductImage[]
-  variants       ProductVariant[]
+  id String @id @default(cuid())
+
+  name        String
+  code        String @unique
+  sku         String?
+  description String?
+
+  brandId     String?
+  categoryIds String[]
+  unitId      String?
+  taxId       String?
+
+  hsnCode       String?
+  manufacturer  String?
+  originCountry String?
+
+  hasVariants    Boolean @default(false)
+  trackInventory Boolean @default(true)
+  allowBackorder Boolean @default(false)
+
+
+
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+    // 1. One-to-One: Thumbnail Relation
+  thumbnailImageId String?       @unique // @unique is required for 1-to-1 in Prisma
+  thumbnailImage   ProductImage? @relation("ThumbnailImage", fields: [thumbnailImageId], references: [id], onDelete: SetNull)
+
+  // 2. One-to-One: Hero Relation
+  heroImageId      String?       @unique // @unique is required for 1-to-1 in Prisma
+  heroImage        ProductImage? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+
+  // 3. One-to-Many: Gallery Relation
+  // We drop the flat String[] array so PostgreSQL can index the relation natively
+  galleryImages    ProductImage[] @relation("GalleryImages")
+
+  brand Brand? @relation(fields: [brandId], references: [id])
+  unit  Unit?  @relation(fields: [unitId], references: [id])
+  tax   Tax?   @relation(fields: [taxId], references: [id])
+
+  variants ProductVariant[]
 }
 
+
+
 model ProductVariant {
-  id           String             @id @default(cuid())
-  productId    String
-  name         String?
-  sku          String             @unique
-  costPrice    Decimal            @db.Decimal(10, 2)
-  sellingPrice Decimal            @db.Decimal(10, 2)
-  weight       Decimal?           @db.Decimal(10, 2)
-  length       Decimal?           @db.Decimal(10, 2)
-  width        Decimal?           @db.Decimal(10, 2)
-  height       Decimal?           @db.Decimal(10, 2)
-  isActive     Boolean            @default(true)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  barcodes     Barcode[]
-  prices       ProductPrice[]
-  product      Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
-  attributes   VariantAttribute[]
+  id        String   @id @default(cuid())
+  productId String
+
+  name String?
+  sku  String
+
+  isActive Boolean @default(true)
+
+  // One-to-One relations for Single Image Positions
+  thumbnailImageId String?       @unique
+  thumbnailImage   ProductImage? @relation("VariantThumbnail", fields: [thumbnailImageId], references: [id], onDelete: SetNull)
+
+  heroImageId      String?       @unique
+  heroImage        ProductImage? @relation("VariantHero", fields: [heroImageId], references: [id], onDelete: SetNull)
+
+  // One-to-Many relation for Gallery Images
+  galleryImages    ProductImage[] @relation("VariantGallery")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  attributes VariantAttribute[]
+  barcodes   Barcode[]
+  prices     ProductPrice[]
 }
 
 model VariantAttribute {
@@ -62,14 +93,25 @@ model VariantAttribute {
 }
 
 model ProductImage {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
+
   productId String
-  imageUrl  String
-  altText   String?
-  sortOrder Int      @default(1)
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  path String
+
+  // Back-reference for the One-to-Many gallery
+  product      Product  @relation("GalleryImages", fields: [productId], references: [id], onDelete: Cascade)
+
+  // Back-references for the One-to-One single images
+  thumbnailFor Product? @relation("ThumbnailImage")
+  heroFor      Product? @relation("HeroImage")
+
+  // NEW: Variant relational back-references
+  variantGalleryFor ProductVariant? @relation("VariantGallery", fields: [variantId], references: [id])
+  variantId         String? // Optional field to link images to a specific variant
+  
+  variantThumbnailFor ProductVariant? @relation("VariantThumbnail")
+  variantHeroFor      ProductVariant? @relation("VariantHero")
 }
 
 model Barcode {

@@ -44,7 +44,7 @@ export default function BulkActions({
 
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => openSheet("price")}>
-            Update Prices
+           Bulk Images 
           </DropdownMenuItem>
 
           <DropdownMenuItem

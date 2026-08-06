@@ -1,6 +1,3 @@
-
-
-
 "use client";
 
 import { useMemo, useState } from "react";
@@ -11,7 +8,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import BulkActions from "./bulk-actions"
+import BulkActions from "./bulk-actions";
+import ImageSelectionSheet from "./image-selection-sheet";
+import { Button } from "@base-ui/react";
 
 import { useProductStore, ProductVariant } from "../store/product-store"; // Adjust path to store
 
@@ -26,31 +25,16 @@ import {
 
 import EditableCell from "./editable-cell";
 
-type VariantTableMode =
-  | "variant"
-  | "pricing"
-  | "inventory"
-  | "images"
-  | "full";
-  
+type VariantTableMode = "variant" | "pricing" | "barcode" | "images" | "full";
 
 interface VariantTableProps {
   mode?: VariantTableMode;
 }
 
 const TABLE_MODES: Record<VariantTableMode, string[]> = {
-  variant: [
-    "select",
-    "attributes",
-    "sku",
-    "barcode",
-  ],
+  variant: ["select", "attributes", "sku", "barcode", "images"],
 
-  images:[
-     "select",
-    "attributes",
-    "sku",
-  ],
+  images: ["select", "attributes", "sku", "images"],
 
   pricing: [
     "select",
@@ -59,42 +43,27 @@ const TABLE_MODES: Record<VariantTableMode, string[]> = {
     "barcode",
     "sellingPrice",
     "costPrice",
+    "image",
   ],
 
-  inventory: [
-    "select",
-    "attributes",
-    "sku",
-    "barcode",
-    "openingStock",
-  ],
+  barcode: ["select", "attributes", "sku", "barcode"],
 
   full: [
     "select",
     "attributes",
     "sku",
     "barcode",
-    "sellingPrice",
-    "costPrice",
-    "openingStock",
+     "images",
   ],
 };
 
-function isColumnVisible(
-  mode: VariantTableMode,
-  id: string,
-) {
-  if (id.startsWith("attr-")) {
-    return TABLE_MODES[mode].includes("attributes");
-  }
-
-  return TABLE_MODES[mode].includes(id);
-}
-export default function VariantTable({
-  mode = "full",
-}: VariantTableProps) {
-  const { productVariants, updateVariant } = useProductStore();
+export default function VariantTable({ mode = "full" }: VariantTableProps) {
+  const { productVariants, updateVariant, images } = useProductStore();
   const [rowSelection, setRowSelection] = useState({});
+  const [imageSheetOpen, setImageSheetOpen] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
 
   const EDITABLE_COLUMNS = 5;
 
@@ -150,291 +119,190 @@ export default function VariantTable({
     return Object.keys(productVariants[0].attributes || {});
   }, [productVariants.length > 0]); // Dependency only shifts when transitioning from 0 items to populated items
 
-  // const columns = useMemo<ColumnDef<ProductVariant>[]>(() => {
-  //   const attributeColumns = attributeKeys.map<ColumnDef<ProductVariant>>(
-  //     (key) => ({
-  //       id: `attr-${key}`,
-  //       header: key,
-  //       cell: ({ row }) => row.original.attributes?.[key] || "",
-  //     }),
-  //   );
-
-  //   return [
-  //     {
-  //       id: "select",
-  //       header: ({ table }) => (
-  //         <Checkbox
-  //           checked={table.getIsAllPageRowsSelected()}
-  //           onCheckedChange={(value) =>
-  //             table.toggleAllPageRowsSelected(!!value)
-  //           }
-  //           aria-label="Select all"
-  //         />
-  //       ),
-  //       cell: ({ row }) => (
-  //         <Checkbox
-  //           checked={row.getIsSelected()}
-  //           onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //           aria-label="Select row"
-  //         />
-  //       ),
-  //       enableSorting: false,
-  //       enableHiding: false,
-  //       size: 40,
-  //     },
-  //     ...attributeColumns,
-  //     {
-  //       accessorKey: "sku",
-  //       header: "SKU",
-  //       cell: ({ row }) => (
-  //         <EditableCell
-  //           value={row.original.sku}
-  //           row={row.index}
-  //           col={0}
-  //           className="min-w-32"
-  //           onKeyDown={handleKeyDown}
-  //           onSave={(value) =>
-  //             updateVariant(row.original.id, {
-  //               sku: String(value),
-  //             })
-  //           }
-  //         />
-  //       ),
-  //     },
-  //     {
-  //       accessorKey: "barcode",
-  //       header: "Barcode",
-  //       cell: ({ row }) => (
-  //         <EditableCell
-  //           value={row.original.barcode}
-  //           row={row.index}
-  //           col={1}
-  //           className="min-w-32"
-  //           onKeyDown={handleKeyDown}
-  //           onSave={(value) =>
-  //             updateVariant(row.original.id, {
-  //               barcode: String(value),
-  //             })
-  //           }
-  //         />
-  //       ),
-  //     },
-  //     {
-  //       accessorKey: "sellingPrice",
-  //       header: "Selling Price",
-  //       cell: ({ row }) => (
-  //         <EditableCell
-  //           value={row.original.sellingPrice}
-  //           type="number"
-  //           row={row.index}
-  //           col={2}
-  //           className="w-24"
-  //           onKeyDown={handleKeyDown}
-  //           onSave={(value) =>
-  //             updateVariant(row.original.id, {
-  //               sellingPrice: Number(value),
-  //             })
-  //           }
-  //         />
-  //       ),
-  //     },
-
-  //     {
-  //       accessorKey: "costPrice",
-  //       header: "Cost Price",
-  //       cell: ({ row }) => (
-  //         <EditableCell
-  //           value={row.original.costPrice}
-  //           type="number"
-  //           row={row.index}
-  //           col={3}
-  //           className="w-24"
-  //           onKeyDown={handleKeyDown}
-  //           onSave={(value) =>
-  //             updateVariant(row.original.id, {
-  //               costPrice: Number(value),
-  //             })
-  //           }
-  //         />
-  //       ),
-  //     },
-
-  //     {
-  //       accessorKey: "openingStock",
-  //       header: "Opening Stock",
-  //       cell: ({ row }) => (
-  //         <EditableCell
-  //           value={row.original.openingStock}
-  //           type="number"
-  //           row={row.index}
-  //           col={4}
-  //           className="w-24"
-  //           onKeyDown={handleKeyDown}
-  //           onSave={(value) =>
-  //             updateVariant(row.original.id, {
-  //               openingStock: Number(value),
-  //             })
-  //           }
-  //         />
-  //       ),
-  //     },
-  //   ];
-  // }, [attributeKeys]);
-
-  
-  
   const columns = useMemo<ColumnDef<ProductVariant>[]>(() => {
-  const attributeColumns = attributeKeys.map<ColumnDef<ProductVariant>>(
-    (key) => ({
-      id: `attr-${key}`,
-      header: key,
-      cell: ({ row }) => row.original.attributes?.[key] || "",
-    }),
-  );
+    const attributeColumns = attributeKeys.map<ColumnDef<ProductVariant>>(
+      (key) => ({
+        id: `attr-${key}`,
+        header: key,
+        cell: ({ row }) => row.original.attributes?.[key] || "",
+      }),
+    );
 
-  const allColumns: ColumnDef<ProductVariant>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) =>
-            table.toggleAllPageRowsSelected(!!value)
-          }
-          aria-label="Select all"
+    const allColumns: ColumnDef<ProductVariant>[] = [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 40,
+      },
+
+      ...attributeColumns,
+     
+      {
+  id: "images",
+  header: "Images",
+  cell: ({ row }) => {
+    const thumbnail =
+      images.find((img) => img.id === row.original.thumbnailId) ??
+      // Added optional chaining here: row.original.imageIds?.includes(...)
+      images.find((img) => row.original.imageIds?.includes(img.id));
+
+    return (
+      <button
+        onClick={() => {
+          setSelectedVariantId(row.original.id);
+          setImageSheetOpen(true);
+        }}
+        className="overflow-hidden rounded border"
+      >
+        <img
+          src={thumbnail?.preview ?? "/placeholder.png"}
+          className="h-12 w-12 object-cover"
+          alt=""
         />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-      size: 40,
-    },
+      </button>
+    );
+  },
+},
 
-    ...attributeColumns,
 
-    {
-      id: "sku",
-      accessorKey: "sku",
-      header: "SKU",
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.original.sku}
-          row={row.index}
-          col={0}
-          className="min-w-32"
-          onKeyDown={handleKeyDown}
-          onSave={(value) =>
-            updateVariant(row.original.id, {
-              sku: String(value),
-            })
-          }
-        />
-      ),
-    },
+      {
+        id: "sku",
+        accessorKey: "sku",
+        header: "SKU",
+        cell: ({ row }) => (
+          <EditableCell
+            value={row.original.sku}
+            row={row.index}
+            col={0}
+            className="min-w-32"
+            onKeyDown={handleKeyDown}
+            onSave={(value) =>
+              updateVariant(row.original.id, {
+                sku: String(value),
+              })
+            }
+          />
+        ),
+      },
 
-    {
-      id: "barcode",
-      accessorKey: "barcode",
-      header: "Barcode",
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.original.barcode}
-          row={row.index}
-          col={1}
-          className="min-w-32"
-          onKeyDown={handleKeyDown}
-          onSave={(value) =>
-            updateVariant(row.original.id, {
-              barcode: String(value),
-            })
-          }
-        />
-      ),
-    },
+      {
+        id: "barcode",
+        accessorKey: "barcode",
+        header: "Barcode",
+        cell: ({ row }) => (
+          <EditableCell
+            value={row.original.barcode}
+            row={row.index}
+            col={1}
+            className="min-w-32"
+            onKeyDown={handleKeyDown}
+            onSave={(value) =>
+              updateVariant(row.original.id, {
+                barcode: String(value),
+              })
+            }
+          />
+        ),
+      },
 
-    {
-       id: "sellingPrice",
-      accessorKey: "sellingPrice",
-      header: "Selling Price",
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.original.sellingPrice}
-          type="number"
-          row={row.index}
-          col={2}
-          className="w-24"
-          onKeyDown={handleKeyDown}
-          onSave={(value) =>
-            updateVariant(row.original.id, {
-              sellingPrice: Number(value),
-            })
-          }
-        />
-      ),
-    },
+      {
+        id: "sellingPrice",
+        accessorKey: "sellingPrice",
+        header: "Selling Price",
+        cell: ({ row }) => (
+          <EditableCell
+            value={row.original.sellingPrice}
+            type="number"
+            row={row.index}
+            col={2}
+            className="w-24"
+            onKeyDown={handleKeyDown}
+            onSave={(value) =>
+              updateVariant(row.original.id, {
+                sellingPrice: Number(value),
+              })
+            }
+          />
+        ),
+      },
 
-    {
-       id: "costPrice",
-      accessorKey: "costPrice",
-      header: "Cost Price",
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.original.costPrice}
-          type="number"
-          row={row.index}
-          col={3}
-          className="w-24"
-          onKeyDown={handleKeyDown}
-          onSave={(value) =>
-            updateVariant(row.original.id, {
-              costPrice: Number(value),
-            })
-          }
-        />
-      ),
-    },
+      {
+        id: "costPrice",
+        accessorKey: "costPrice",
+        header: "Cost Price",
+        cell: ({ row }) => (
+          <EditableCell
+            value={row.original.costPrice}
+            type="number"
+            row={row.index}
+            col={3}
+            className="w-24"
+            onKeyDown={handleKeyDown}
+            onSave={(value) =>
+              updateVariant(row.original.id, {
+                costPrice: Number(value),
+              })
+            }
+          />
+        ),
+      },
 
-    {
+      {
         id: "openingStock",
-      accessorKey: "openingStock",
-      header: "Opening Stock",
-      cell: ({ row }) => (
-        <EditableCell
-          value={row.original.openingStock}
-          type="number"
-          row={row.index}
-          col={4}
-          className="w-24"
-          onKeyDown={handleKeyDown}
-          onSave={(value) =>
-            updateVariant(row.original.id, {
-              openingStock: Number(value),
-            })
-          }
-        />
-      ),
-    },
-  ];
+        accessorKey: "openingStock",
+        header: "Opening Stock",
+        cell: ({ row }) => (
+          <EditableCell
+            value={row.original.openingStock}
+            type="number"
+            row={row.index}
+            col={4}
+            className="w-24"
+            onKeyDown={handleKeyDown}
+            onSave={(value) =>
+              updateVariant(row.original.id, {
+                openingStock: Number(value),
+              })
+            }
+          />
+        ),
+      },
+    ];
 
 
-  return allColumns.filter((column) => {
-  const id = column.id!;
 
-  if (id.startsWith("attr-")) {
-    return TABLE_MODES[mode].includes("attributes");
-  }
+    // Change this block at the end of your useMemo:
+    return allColumns.filter((column) => {
+      const id = column.id!;
 
-  return TABLE_MODES[mode].includes(id);
-});
+      if (id.startsWith("attr-")) {
+        return TABLE_MODES[mode]?.includes("attributes") ?? false;
+      }
 
-}, [attributeKeys, mode, updateVariant]);
-  
+      // Added optional chaining here to prevent undefined crashes
+      return TABLE_MODES[mode]?.includes(id) ?? false;
+    });
+
+  }, [attributeKeys, mode, images]); // ensure mode and images are properly added to dependencies
+
+
   const table = useReactTable({
     data: productVariants,
     columns,
@@ -457,6 +325,13 @@ export default function VariantTable({
           selectedIds={table
             .getSelectedRowModel()
             .rows.map((row) => row.original.id)}
+        />
+
+       
+        <ImageSelectionSheet
+          open={imageSheetOpen}
+          onOpenChange={setImageSheetOpen}
+          variantId={selectedVariantId}
         />
       </div>
       <Table>

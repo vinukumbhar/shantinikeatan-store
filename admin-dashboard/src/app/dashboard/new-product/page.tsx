@@ -8,6 +8,7 @@ import StepOneForm from "./components/step1";
 import StepTwoForm from "./components/step2";
 import StepThreeForm from "./components/step3"
 import StepFourForm from "./components/step4"
+import StepFourFIve from "./components/step5"
 
 
 export default function NewProduct() {
@@ -37,25 +38,25 @@ export default function NewProduct() {
           {/* Main Context Form Step Window */}
           <div className="rounded-xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm min-h-[350px] md:min-h-[460px]">
             {step === 1 && (
-              <StepOneForm onNext={() => setStep((s) => Math.min(6, s + 1))} />
+              <StepOneForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
             )}
             {step === 2 && (
-              <StepTwoForm onNext={() => setStep((s) => Math.min(6, s + 1))} />
+              <StepTwoForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
             )}
            
             {step === 3 && (
               <div className="text-xs font-semibold text-slate-500">
-              <StepThreeForm />
+              <StepThreeForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
               </div>
             )}
             {step === 4 && (
               <div className="text-xs font-semibold text-slate-500">
-               <StepFourForm />
+               <StepFourForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
               </div>
             )}
             {step === 5 && (
               <div className="text-xs font-semibold text-slate-500">
-                Review Content (Step 6)
+               <StepFourFIve  onNext={() => setStep((s) => Math.min(5, s + 1))} />
               </div>
             )}
           </div>
@@ -92,13 +93,13 @@ export default function NewProduct() {
               </Button>
             )}
 
-            <Button
-              onClick={() => setStep((s) => Math.min(6, s + 1))}
+            {/* <Button
+              onClick={() => setStep((s) => Math.min(5, s + 1))}
               className="rounded-md bg-blue-600 px-4 sm:px-5 text-xs font-medium text-white hover:bg-blue-700 shadow-sm flex items-center gap-1.5"
             >
-              {step === 6 ? "Confirm & Save" : "Next"}
-              {step < 6 && <ChevronRight className="h-3.5 w-3.5" />}
-            </Button>
+              {step === 5 ? "Confirm & Save" : "Next"}
+              {step < 5 && <ChevronRight className="h-3.5 w-3.5" />}
+            </Button> */}
           </div>
         </div>
       </div>

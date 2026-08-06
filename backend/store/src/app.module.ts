@@ -23,10 +23,18 @@ import { ProductImageController } from './catalog/product-image/product-image.co
 import { VariantAttributeModule } from './catalog/variant-attribute/variant-attribute.module';
 import { ProductVariantModule } from './catalog/product-variant/product-variant.module';
 import { MasterModule } from './master/master/master.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 
 
 @Module({
+  
   imports: [
+     ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
     PrismaModule,
     ProductModule,
     BrandModule,
