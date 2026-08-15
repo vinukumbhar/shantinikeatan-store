@@ -19,6 +19,11 @@ import { AlertTriangle, XCircle, Wallet } from "lucide-react";
 const tabs = [
   {
     name: "Products",
+    href: "/dashboard/inventory/product",
+    icon: Package,
+  },
+    {
+    name: "Products Old",
     href: "/dashboard/inventory/products",
     icon: Package,
   },
@@ -28,8 +33,8 @@ const tabs = [
     icon: Boxes,
   },
   {
-    name: "Brands",
-    href: "/dashboard/inventory/brands",
+    name: "Pricelist & Discount",
+    href: "/dashboard/inventory/price-list",
     icon: Tags,
   },
   {
@@ -43,8 +48,8 @@ const tabs = [
     icon: PackagePlus,
   },
   {
-    name: "Stock Adjustment",
-    href: "/dashboard/inventory/stockadjustment",
+    name: "Bulk Stock",
+    href: "/dashboard/inventory/bulkstock",
     icon: ClipboardList,
   },
   {

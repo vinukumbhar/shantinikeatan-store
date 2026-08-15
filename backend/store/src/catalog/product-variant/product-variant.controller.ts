@@ -30,6 +30,15 @@ export class ProductVariantController {
     return this.productVariantService.findAll();
   }
 
+
+  // ✅ Put this BEFORE @Get(':id')
+  @Get('product/:productId')
+  findByProduct(
+    @Param('productId') productId: string,
+  ) {
+    return this.productVariantService.findByProduct(productId);
+  }
+
   @Get(':id')
   findOne(
     @Param('id') id: string,
@@ -44,6 +53,8 @@ export class ProductVariantController {
   ) {
     return this.productVariantService.update(id, dto);
   }
+
+  
 
   @Delete(':id')
   remove(

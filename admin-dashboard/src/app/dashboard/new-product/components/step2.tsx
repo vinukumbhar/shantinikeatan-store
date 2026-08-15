@@ -11,6 +11,7 @@ import { MultiSearchableSelect } from "@/components/ui/MultiSearchableSelect";
 import { useProductStore } from "../store/product-store";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { generateVariants } from "./generate-variants";
+import VariantTypeSheet from "./variant-add/VariantTypeSheet";
 
 interface StepTwoFormProps {
   onNext: () => void;
@@ -26,6 +27,7 @@ export default function StepTwoForm({ onNext }: StepTwoFormProps) {
   } = useProductStore();
 
   const masterData = useProductStore((state) => state.masterData);
+  const [variantTypeSheetOpen, setVariantTypeSheetOpen] = useState(false);
 
   const addAttribute = () => {
     setRows([
@@ -154,20 +156,35 @@ export default function StepTwoForm({ onNext }: StepTwoFormProps) {
               {/* Expandable Content */}
               {expandedIndex === index && (
                 <div className="grid grid-cols-1 gap-4 border-t p-4 md:grid-cols-[1fr_1fr]">
-                  <div className="space-y-1.5">
-                    <Label>Variant Type</Label>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <SearchableSelect
+                        options={getAvailableAttributes(index)}
+                        value={row.attributeId}
+                        onChange={(value) => updateAttribute(index, value)}
+                        placeholder="Select Variant Type"
+                        searchPlaceholder="Search Variant Type"
+                      />
+                    </div>
 
-                    <SearchableSelect
-                      options={getAvailableAttributes(index)}
-                      value={row.attributeId}
-                      onChange={(value) => updateAttribute(index, value)}
-                      placeholder="Select Variant Type"
-                      searchPlaceholder="Search Variant Type"
-                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setVariantTypeSheetOpen(true)}
+                      title="Add Variant Type"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
+                  <VariantTypeSheet
+                    open={variantTypeSheetOpen}
+                    onOpenChange={setVariantTypeSheetOpen}
+                    attributes={masterData.attributes}
+                  />
 
                   <div className="space-y-1.5">
-                    <Label>Variant Values</Label>
+                    {/* <Label>Variant Values</Label> */}
 
                     <MultiSearchableSelect
                       options={filteredValues}
@@ -206,8 +223,8 @@ export default function StepTwoForm({ onNext }: StepTwoFormProps) {
 
             setProductVariants(generatedVariants);
 
-              console.log("Selected Attributes:", rows);
-      console.log("Generated Variants:", generatedVariants);
+            console.log("Selected Attributes:", rows);
+            console.log("Generated Variants:", generatedVariants);
 
             onNext();
           }}

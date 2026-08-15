@@ -14,17 +14,17 @@ import { LocationModule } from './master/location/location.module';
 import { PaymentMethodModule } from './master/payment-method/payment-method.module';
 import { PaymentTermModule } from './master/payment-term/payment-term.module';
 import { ProductModule } from './catalog/product/product.module';
-import { ProductPriceModule } from './catalog/product-price/product-price.module';
+import { PriceListItemModule} from "./catalog/product-price/price-list-item.module"
 import { PriceListModule } from './catalog/price-list/price-list.module';
 import { BarcodeModule } from './catalog/barcode/barcode.module';
 import { ProductImageModule } from './catalog/product-image/product-image.module';
 import { ProductImageService } from './catalog/product-image/product-image.service';
 import { ProductImageController } from './catalog/product-image/product-image.controller';
-import { VariantAttributeModule } from './catalog/variant-attribute/variant-attribute.module';
 import { ProductVariantModule } from './catalog/product-variant/product-variant.module';
 import { MasterModule } from './master/master/master.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ReceiveStockModule } from './catalog/receive-stock/receive-stock.module';
 
 
 
@@ -35,6 +35,7 @@ import { join } from 'path';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
+    AttributeModule,
     PrismaModule,
     ProductModule,
     BrandModule,
@@ -49,12 +50,12 @@ import { join } from 'path';
     PaymentMethodModule,
     PaymentTermModule,
     ProductVariantModule,
-    VariantAttributeModule,
     ProductImageModule,
     BarcodeModule,
     PriceListModule,
-    ProductPriceModule,
+    PriceListItemModule,
     MasterModule,
+    ReceiveStockModule,
   ],
   controllers: [AppController, ProductImageController],
   providers: [AppService, ProductImageService],

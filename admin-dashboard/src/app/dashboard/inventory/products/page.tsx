@@ -255,24 +255,18 @@ export default function InventoryDashboard() {
             <Button variant="outline" className="gap-2 bg-white text-gray-700">
               <Download className="h-4 w-4" /> Import
             </Button>
-            {/* Simple onClick trigger to slide out sheet panel */}
-            <Button
-              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              onClick={() => setSheetOpen(true)}
-            >
-              <Plus className="h-4 w-4" /> New Product (F5)
-            </Button>
-            <Button
-              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              onClick={() => setNewProductSheetOpen(true)}
-            >
-              <Plus className="h-4 w-4" /> New Product 2 (F5)
-            </Button>
+            
             {/* The sheet element container rendering conditionally from right edge layout */}
+            <Button asChild>
+              <Link href="/dashboard/inventory/new-product-ex">
+                <Plus className="mr-2 h-4 w-4" />
+                New Product External
+              </Link>
+            </Button>
             <Button asChild>
               <Link href="/dashboard/new-product">
                 <Plus className="mr-2 h-4 w-4" />
-                New Product
+                New Product Internal
               </Link>
             </Button>
             <NewProductSheet open={sheetOpen} onOpenChange={setSheetOpen} />

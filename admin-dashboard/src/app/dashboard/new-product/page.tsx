@@ -6,10 +6,9 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import StepOneForm from "./components/step1";
 import StepTwoForm from "./components/step2";
-import StepThreeForm from "./components/step3"
-import StepFourForm from "./components/step4"
-import StepFourFIve from "./components/step5"
-
+import StepThreeForm from "./components/step3";
+import StepFourForm from "./components/step4";
+import StepFourFIve from "./components/step5";
 
 export default function NewProduct() {
   const [step, setStep] = useState(1);
@@ -20,7 +19,7 @@ export default function NewProduct() {
       <div className="w-full flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-6 space-y-5 md:space-y-6">
         {/* Page Title & Subtitle */}
         <div>
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-lg md:text-xl font-bold tracking-tight text-orange-600">
             New Product
           </h1>
           <p className="mt-0.5 text-2xs md:text-xs text-slate-500">
@@ -43,20 +42,26 @@ export default function NewProduct() {
             {step === 2 && (
               <StepTwoForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
             )}
-           
+
             {step === 3 && (
               <div className="text-xs font-semibold text-slate-500">
-              <StepThreeForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
+                <StepThreeForm
+                  onNext={() => setStep((s) => Math.min(5, s + 1))}
+                />
               </div>
             )}
             {step === 4 && (
               <div className="text-xs font-semibold text-slate-500">
-               <StepFourForm onNext={() => setStep((s) => Math.min(5, s + 1))} />
+                <StepFourForm
+                  onNext={() => setStep((s) => Math.min(5, s + 1))}
+                />
               </div>
             )}
             {step === 5 && (
               <div className="text-xs font-semibold text-slate-500">
-               <StepFourFIve  onNext={() => setStep((s) => Math.min(5, s + 1))} />
+                <StepFourFIve
+                  onNext={() => setStep((s) => Math.min(5, s + 1))}
+                />
               </div>
             )}
           </div>

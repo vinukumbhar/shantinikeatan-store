@@ -33,16 +33,16 @@ model Company {
 }
 
 model Currency {
-  id            String      @id @default(cuid())
+  id            String          @id @default(cuid())
   name          String
-  code          String      @unique
+  code          String          @unique
   symbol        String
-  decimalPlaces Int         @default(2)
-  isBase        Boolean     @default(false)
-  isActive      Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  priceLists    PriceList[]
+  decimalPlaces Int             @default(2)
+  isBase        Boolean         @default(false)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  priceLists    PriceListItem[]
 }
 
 model Tax {
@@ -96,10 +96,10 @@ model Attribute {
 model AttributeValue {
   id String @id @default(cuid())
 
-  // Business Code
+  // Auto-generated Business Code
   code String? @unique
 
-  // Used in SKU generation
+  // Manual SKU Code - NOT UNIQUE
   skuCode String? @db.VarChar(10)
 
   name String
@@ -111,10 +111,9 @@ model AttributeValue {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  attribute         Attribute          @relation(fields: [attributeId], references: [id])
-  variantAttributes VariantAttribute[]
+  attribute Attribute @relation(fields: [attributeId], references: [id])
 
-  @@unique([attributeId, skuCode])
+  variantAttributes VariantAttribute[]
 }
 
 model Warehouse {

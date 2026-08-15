@@ -24,6 +24,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 8000);
 
   console.log(`🚀 Server running on http://localhost:8000`);
+  console.log("🔥🔥🔥 NESTJS BACKEND STARTED ON PORT 8000 🔥🔥🔥");
 }
 
 bootstrap();

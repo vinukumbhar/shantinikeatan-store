@@ -28,6 +28,7 @@ export class MasterService {
         select: {
           id: true,
           name: true,
+          code:true,
         },
         orderBy: {
           name: 'asc',

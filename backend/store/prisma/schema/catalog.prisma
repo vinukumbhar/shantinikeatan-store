@@ -1,11 +1,8 @@
-
-
-
 model Product {
   id String @id @default(cuid())
 
   name        String
-  code        String @unique
+  code        String  @unique
   sku         String?
   description String?
 
@@ -22,37 +19,35 @@ model Product {
   trackInventory Boolean @default(true)
   allowBackorder Boolean @default(false)
 
-
-
-
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-    // 1. One-to-One: Thumbnail Relation
+  // 1. One-to-One: Thumbnail Relation
   thumbnailImageId String?       @unique // @unique is required for 1-to-1 in Prisma
   thumbnailImage   ProductImage? @relation("ThumbnailImage", fields: [thumbnailImageId], references: [id], onDelete: SetNull)
 
   // 2. One-to-One: Hero Relation
-  heroImageId      String?       @unique // @unique is required for 1-to-1 in Prisma
-  heroImage        ProductImage? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  heroImageId String?       @unique // @unique is required for 1-to-1 in Prisma
+  heroImage   ProductImage? @relation("HeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
 
   // 3. One-to-Many: Gallery Relation
   // We drop the flat String[] array so PostgreSQL can index the relation natively
-  galleryImages    ProductImage[] @relation("GalleryImages")
+  galleryImages ProductImage[] @relation("GalleryImages")
 
   brand Brand? @relation(fields: [brandId], references: [id])
   unit  Unit?  @relation(fields: [unitId], references: [id])
   tax   Tax?   @relation(fields: [taxId], references: [id])
 
   variants ProductVariant[]
+
+  priceListItems PriceListItem[]
 }
 
 
-
 model ProductVariant {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   productId String
 
   name String?
@@ -60,15 +55,20 @@ model ProductVariant {
 
   isActive Boolean @default(true)
 
-  // One-to-One relations for Single Image Positions
-  thumbnailImageId String?       @unique
+  // Inventory
+  stock         Int @default(0)
+  lowStockLimit Int @default(0)
+
+  // Variant Thumbnail
+  thumbnailImageId String?
   thumbnailImage   ProductImage? @relation("VariantThumbnail", fields: [thumbnailImageId], references: [id], onDelete: SetNull)
 
-  heroImageId      String?       @unique
-  heroImage        ProductImage? @relation("VariantHero", fields: [heroImageId], references: [id], onDelete: SetNull)
+  // Variant Hero
+  heroImageId String?
+  heroImage   ProductImage? @relation("VariantHero", fields: [heroImageId], references: [id], onDelete: SetNull)
 
-  // One-to-Many relation for Gallery Images
-  galleryImages    ProductImage[] @relation("VariantGallery")
+  // Variant Gallery
+  galleryImages ProductImage[] @relation("VariantGallery")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,7 +77,7 @@ model ProductVariant {
 
   attributes VariantAttribute[]
   barcodes   Barcode[]
-  prices     ProductPrice[]
+  prices     PriceListItem[]
 }
 
 model VariantAttribute {
@@ -92,26 +92,32 @@ model VariantAttribute {
   @@unique([variantId, attributeId])
 }
 
+
+
 model ProductImage {
   id String @id @default(cuid())
 
   productId String
+  path      String
 
-  path String
+  // Product Gallery
+  product Product @relation("GalleryImages", fields: [productId], references: [id], onDelete: Cascade)
 
-  // Back-reference for the One-to-Many gallery
-  product      Product  @relation("GalleryImages", fields: [productId], references: [id], onDelete: Cascade)
-
-  // Back-references for the One-to-One single images
+  // Product Thumbnail / Hero
   thumbnailFor Product? @relation("ThumbnailImage")
   heroFor      Product? @relation("HeroImage")
 
-  // NEW: Variant relational back-references
+  // Variant Gallery
+  variantId         String?
   variantGalleryFor ProductVariant? @relation("VariantGallery", fields: [variantId], references: [id])
-  variantId         String? // Optional field to link images to a specific variant
-  
-  variantThumbnailFor ProductVariant? @relation("VariantThumbnail")
-  variantHeroFor      ProductVariant? @relation("VariantHero")
+
+  // Variant Thumbnail
+  // Same image can be used by multiple variants
+  variantThumbnailFor ProductVariant[] @relation("VariantThumbnail")
+
+  // Variant Hero
+  // Same image can be used by multiple variants
+  variantHeroFor ProductVariant[] @relation("VariantHero")
 }
 
 model Barcode {
@@ -125,32 +131,49 @@ model Barcode {
 }
 
 model PriceList {
-  id          String         @id @default(cuid())
-  name        String
-  code        String         @unique
-  currencyId  String
-  description String?
-  isDefault   Boolean        @default(false)
-  isActive    Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  currency    Currency       @relation(fields: [currencyId], references: [id])
-  prices      ProductPrice[]
+  id String @id @default(cuid())
+
+  name      String
+  invoiceId String?
+  poId      String?
+  number    String  @unique
+
+  date DateTime @default(now())
+
+  approvedById String?
+  //approvedBy   User? @relation(fields: [approvedById], references: [id])
+
+  items PriceListItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model ProductPrice {
-  id            String         @id @default(cuid())
-  variantId     String
-  priceListId   String
-  price         Decimal        @db.Decimal(10, 2)
-  effectiveFrom DateTime?
-  effectiveTo   DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  priceList     PriceList      @relation(fields: [priceListId], references: [id], onDelete: Cascade)
-  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+model PriceListItem {
+  id String @id @default(cuid())
 
-  @@unique([variantId, priceListId])
+  priceListId String
+  productId   String
+  variantId   String?
+
+  stock        Int
+  sellingPrice Float
+  costPrice    Float
+  mrp          Float
+
+  priceList PriceList       @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  currencyId String?
+
+  currency Currency? @relation(fields: [currencyId], references: [id])
+
+  @@index([priceListId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 enum BarcodeType {

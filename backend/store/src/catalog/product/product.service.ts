@@ -36,7 +36,7 @@ async create(dto: CreateProductDto) {
     thumbnailImageId,
     heroImageId,
 
-    // galleryImageIds removed
+    galleryImageIds, 
 
     ...productData
   } = dto;
@@ -220,7 +220,7 @@ async create(dto: CreateProductDto) {
     thumbnailImageId,
     heroImageId,
 
-    // galleryImageIds removed
+    galleryImageIds, 
 
     ...productData
   } = dto;

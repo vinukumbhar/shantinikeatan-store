@@ -9,6 +9,8 @@ export class CreateProductDto {
   @IsString()
   name!: string;
 
+
+
   @IsOptional()
   @IsString()
   code?: string;
@@ -20,6 +22,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   description?: string;
+  
 
   @IsOptional()
   @IsString()
@@ -79,4 +82,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  
 }

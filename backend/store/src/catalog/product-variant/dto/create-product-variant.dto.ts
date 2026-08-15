@@ -4,6 +4,9 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
+  IsInt,
+   MaxLength,
+
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -19,6 +22,11 @@ export class CreateProductVariantDto {
   @IsString()
   productId!: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  name?: string;
+
   @IsString()
   sku!: string;
 
@@ -27,6 +35,14 @@ export class CreateProductVariantDto {
   @ValidateNested({ each: true })
   @Type(() => VariantAttributeDto)
   attributes!: VariantAttributeDto[];
+
+  @IsOptional()
+  @IsInt()
+  stock?: number;
+
+  @IsOptional()
+  @IsInt()
+  lowStockLimit?: number;
 
   @IsOptional()
   @IsArray()

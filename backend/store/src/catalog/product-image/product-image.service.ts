@@ -185,7 +185,89 @@ export class ProductImageService {
   //   return images;
   // }
 
-  async upload(
+//   async upload(
+//   files: Express.Multer.File[],
+//   dto: CreateProductImageDto,
+// ) {
+//   const product = await this.prisma.product.findUnique({
+//     where: { id: dto.productId },
+//   });
+
+//   if (!product) {
+//     throw new NotFoundException('Product not found');
+//   }
+
+//   if (!files?.length) {
+//     throw new NotFoundException('No files uploaded');
+//   }
+
+//   const largeDir = join(process.cwd(), 'uploads', 'products', 'large');
+//   const thumbDir = join(process.cwd(), 'uploads', 'products', 'thumb');
+
+//   await Promise.all([
+//     fs.mkdir(largeDir, { recursive: true }),
+//     fs.mkdir(thumbDir, { recursive: true }),
+//   ]);
+
+//   const images = await Promise.all(
+//     files.map(async (file) => {
+//       const name = basename(
+//         file.originalname,
+//         extname(file.originalname),
+//       )
+//         .replace(/\s+/g, '-')
+//         .toLowerCase();
+
+//       const uniqueFileName = `${name}_${randomUUID().slice(0, 8)}.webp`;
+
+//       const largePath = join(largeDir, uniqueFileName);
+//       const thumbPath = join(thumbDir, uniqueFileName);
+
+//       // Create one Sharp instance and clone it
+//       const image = sharp(file.path);
+
+//       await Promise.all([
+//         image
+//           .clone()
+//           .resize({
+//             width: 1200,
+//             withoutEnlargement: true,
+//           })
+//           .webp({ quality: 80 })
+//           .toFile(largePath),
+
+//         image
+//           .clone()
+//           .resize(300, 300, {
+//             fit: 'cover',
+//           })
+//           .webp({ quality: 75 })
+//           .toFile(thumbPath),
+//       ]);
+
+//       // Try to delete the temporary upload
+//       try {
+//         await fs.unlink(file.path);
+//       } catch (err) {
+//         console.warn(
+//           `Could not delete temporary file: ${file.path}`,
+//           err,
+//         );
+//       }
+
+//       return this.prisma.productImage.create({
+//         data: {
+//           productId: dto.productId,
+//           path: `uploads/products/large/${uniqueFileName}`,
+//         },
+//       });
+//     }),
+//   );
+
+//   return images;
+// }
+
+async upload(
   files: Express.Multer.File[],
   dto: CreateProductImageDto,
 ) {
@@ -201,8 +283,19 @@ export class ProductImageService {
     throw new NotFoundException('No files uploaded');
   }
 
-  const largeDir = join(process.cwd(), 'uploads', 'products', 'large');
-  const thumbDir = join(process.cwd(), 'uploads', 'products', 'thumb');
+  const largeDir = join(
+    process.cwd(),
+    'uploads',
+    'products',
+    'large',
+  );
+
+  const thumbDir = join(
+    process.cwd(),
+    'uploads',
+    'products',
+    'thumb',
+  );
 
   await Promise.all([
     fs.mkdir(largeDir, { recursive: true }),
@@ -218,17 +311,25 @@ export class ProductImageService {
         .replace(/\s+/g, '-')
         .toLowerCase();
 
-      const uniqueFileName = `${name}_${randomUUID().slice(0, 8)}.webp`;
+      const uniqueFileName =
+        `${name}_${randomUUID().slice(0, 8)}.webp`;
 
-      const largePath = join(largeDir, uniqueFileName);
-      const thumbPath = join(thumbDir, uniqueFileName);
+      const largePath = join(
+        largeDir,
+        uniqueFileName,
+      );
 
-      // Create one Sharp instance and clone it
-      const image = sharp(file.path);
+      const thumbPath = join(
+        thumbDir,
+        uniqueFileName,
+      );
 
+      // Read temporary upload into memory.
+      const inputBuffer = await fs.readFile(file.path);
+
+      // Generate both versions from the buffer.
       await Promise.all([
-        image
-          .clone()
+        sharp(inputBuffer)
           .resize({
             width: 1200,
             withoutEnlargement: true,
@@ -236,8 +337,7 @@ export class ProductImageService {
           .webp({ quality: 80 })
           .toFile(largePath),
 
-        image
-          .clone()
+        sharp(inputBuffer)
           .resize(300, 300, {
             fit: 'cover',
           })
@@ -245,10 +345,10 @@ export class ProductImageService {
           .toFile(thumbPath),
       ]);
 
-      // Try to delete the temporary upload
+      // Remove temporary Multer file.
       try {
         await fs.unlink(file.path);
-      } catch (err) {
+      } catch (err: any) {
         console.warn(
           `Could not delete temporary file: ${file.path}`,
           err,

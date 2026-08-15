@@ -6,7 +6,7 @@ export async function seedAttributeValue(prisma: PrismaClient) {
   const attributes = await prisma.attribute.findMany();
 
   const attributeMap = Object.fromEntries(
-    attributes.map((a) => [a.code, a.id]),
+    attributes.map((attribute) => [attribute.code, attribute.id]),
   );
 
   const values = [
@@ -145,41 +145,48 @@ export async function seedAttributeValue(prisma: PrismaClient) {
     { attribute: 'ORIGIN', name: 'Vietnam', skuCode: 'VNM' },
   ];
 
- let counter = 1;
+  let counter = 1;
 
-for (const value of values) {
-  const attributeId = attributeMap[value.attribute];
+  for (const value of values) {
+    const attributeId = attributeMap[value.attribute];
 
-  if (!attributeId) {
-    console.warn(`⚠️ Attribute '${value.attribute}' not found`);
-    continue;
+    if (!attributeId) {
+      console.warn(
+        `⚠️ Attribute '${value.attribute}' not found. Skipping '${value.name}'.`,
+      );
+      continue;
+    }
+
+    // Auto-generated business code
+    const code = `AV${counter.toString().padStart(6, '0')}`;
+
+    await prisma.attributeValue.upsert({
+      where: {
+        code,
+      },
+
+      update: {
+        name: value.name,
+        skuCode: value.skuCode,
+        attributeId,
+        isActive: true,
+      },
+
+      create: {
+        code,
+        name: value.name,
+        skuCode: value.skuCode,
+        attributeId,
+        isActive: true,
+      },
+    });
+
+    console.log(
+      `✅ ${code} | ${value.attribute} | ${value.name} | SKU: ${value.skuCode}`,
+    );
+
+    counter++;
   }
 
-  const code = `AV${counter.toString().padStart(6, '0')}`;
-
-  await prisma.attributeValue.upsert({
-    where: {
-      attributeId_skuCode: {
-        attributeId,
-        skuCode: value.skuCode,
-      },
-    },
-    update: {
-      name: value.name,
-      skuCode: value.skuCode,
-      isActive: true,
-    },
-    create: {
-      code,
-      name: value.name,
-      skuCode: value.skuCode,
-      attributeId,
-      isActive: true,
-    },
-  });
-
-  counter++;
-}
-
-console.log(`✅ ${values.length} Attribute Values Seeded`);
+  console.log(`✅ ${counter - 1} Attribute Values Seeded`);
 }

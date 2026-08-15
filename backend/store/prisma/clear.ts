@@ -7,7 +7,7 @@ async function main() {
 
   await prisma.variantAttribute.deleteMany();
   await prisma.barcode.deleteMany();
-  await prisma.productPrice.deleteMany();
+  await prisma.priceListItem.deleteMany();
   await prisma.productImage.deleteMany();
   await prisma.productVariant.deleteMany();
   await prisma.product.deleteMany();

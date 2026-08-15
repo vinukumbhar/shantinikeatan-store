@@ -15,7 +15,7 @@ import { UpdatePriceListDto } from './dto/update-price-list.dto';
 
 @Controller('price-lists')
 export class PriceListController {
-  constructor(private readonly priceListService: PriceListService) {}
+  constructor(private readonly priceListService: PriceListService) { }
 
   @Post()
   create(@Body() dto: CreatePriceListDto) {
@@ -25,6 +25,11 @@ export class PriceListController {
   @Get()
   findAll() {
     return this.priceListService.findAll();
+  }
+
+  @Get('today')
+  findToday() {
+    return this.priceListService.findToday();
   }
 
   @Get(':id')

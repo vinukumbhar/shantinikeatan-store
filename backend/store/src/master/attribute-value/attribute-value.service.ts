@@ -11,34 +11,89 @@ import { UpdateAttributeValueDto } from './dto/update-attribute-value.dto';
 export class AttributeValueService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // async create(createDto: CreateAttributeValueDto) {
+  //   if (createDto.code) {
+  //     const exists = await this.prisma.attributeValue.findUnique({
+  //       where: { code: createDto.code },
+  //     });
+
+  //     if (exists) {
+  //       throw new BadRequestException('Attribute Value code already exists');
+  //     }
+  //   }
+
+  //   return this.prisma.attributeValue.create({
+  //     data: {
+  //       name: createDto.name,
+  //       code: createDto.code,
+  //       description: createDto.description,
+  //       isActive: createDto.isActive,
+  //       attribute: {
+  //         connect: {
+  //           id: createDto.attributeId,
+  //         },
+  //       },
+  //     },
+  //     include: {
+  //       attribute: true,
+  //     },
+  //   });
+  // }
+
   async create(createDto: CreateAttributeValueDto) {
-    if (createDto.code) {
-      const exists = await this.prisma.attributeValue.findUnique({
-        where: { code: createDto.code },
-      });
+  // Find the latest generated business code
+  const lastValue = await this.prisma.attributeValue.findFirst({
+    where: {
+      code: {
+        not: null,
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      code: true,
+    },
+  });
 
-      if (exists) {
-        throw new BadRequestException('Attribute Value code already exists');
-      }
+  // Generate next code
+  let nextNumber = 1;
+
+  if (lastValue?.code) {
+    const match = lastValue.code.match(/\d+$/);
+
+    if (match) {
+      nextNumber = Number(match[0]) + 1;
     }
+  }
 
-    return this.prisma.attributeValue.create({
-      data: {
-        name: createDto.name,
-        code: createDto.code,
-        description: createDto.description,
-        isActive: createDto.isActive,
-        attribute: {
-          connect: {
-            id: createDto.attributeId,
-          },
+  const code = `AV${String(nextNumber).padStart(6, '0')}`;
+
+  return this.prisma.attributeValue.create({
+    data: {
+      name: createDto.name,
+
+      // AUTO GENERATED
+      code,
+
+      // MANUAL SKU
+      skuCode: createDto.skuCode,
+
+      description: createDto.description,
+      isActive: createDto.isActive ?? true,
+
+      attribute: {
+        connect: {
+          id: createDto.attributeId,
         },
       },
-      include: {
-        attribute: true,
-      },
-    });
-  }
+    },
+
+    include: {
+      attribute: true,
+    },
+  });
+}
 
   async findAll() {
     return this.prisma.attributeValue.findMany({
